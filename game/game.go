@@ -1,11 +1,16 @@
 package game
 
 import (
+	"bytes"
+	"fmt"
 	"image/color"
+	"log"
 	"math/rand"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
@@ -35,6 +40,10 @@ type Player struct {
 	Speed               float32
 	Projectiles         []*Projectile
 	Hitbox              Hitbox
+	Grazebox            Hitbox
+	Hits                int
+	Grazing             *Projectile
+	Score               int
 }
 
 type Enemy struct {
@@ -47,6 +56,24 @@ type Projectile struct {
 	X, Y, Width, Height float32
 	Speed               float32
 	Hitbox              Hitbox
+}
+
+var (
+	mplusFaceSource *text.GoTextFaceSource
+	mplusNormalFace *text.GoTextFace
+)
+
+func init() {
+	s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.MPlus1pRegular_ttf))
+	if err != nil {
+		log.Fatal(err)
+	}
+	mplusFaceSource = s
+
+	mplusNormalFace = &text.GoTextFace{
+		Source: mplusFaceSource,
+		Size:   24,
+	}
 }
 
 // Update updates the game state.
@@ -81,6 +108,16 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0, 0, 0, 255})
 
+	text_op := &text.DrawOptions{}
+	text_op.GeoM.Translate(ScreenWidth-250, 20)
+	text.Draw(screen, fmt.Sprintf("You were hit: %d", g.player.Hits), mplusNormalFace, text_op)
+	text_op.GeoM.Translate(80, 30)
+	text.Draw(screen, fmt.Sprintf("Score: %d", g.player.Score), mplusNormalFace, text_op)
+	if g.player.Grazing != nil {
+		text_op.GeoM.Translate(0, 390)
+		text.Draw(screen, "Graze!", mplusNormalFace, text_op)
+	}
+
 	// Draw the player
 	vector.DrawFilledRect(screen, g.player.X, g.player.Y, g.player.Width, g.player.Height,
 		color.RGBA{0, 255, 0, 255}, true)
@@ -100,6 +137,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if g.flagHitboxes {
 		vector.StrokeRect(screen, g.player.Hitbox.X, g.player.Hitbox.Y,
 			g.player.Hitbox.Width, g.player.Hitbox.Height, 2, color.RGBA{255, 255, 255, 255}, true)
+		vector.StrokeRect(screen, g.player.Grazebox.X, g.player.Grazebox.Y,
+			g.player.Grazebox.Width, g.player.Grazebox.Height, 2, color.RGBA{255, 125, 255, 255}, true)
+
 		for _, projectile := range g.player.Projectiles {
 			vector.StrokeRect(screen, projectile.Hitbox.X, projectile.Hitbox.Y,
 				projectile.Hitbox.Width, projectile.Hitbox.Height, 2, color.RGBA{255, 255, 255, 255}, true)
@@ -127,9 +167,12 @@ func NewGame() *Game {
 		Height:      32,
 		Speed:       playerSpeed,
 		Projectiles: []*Projectile{},
-		Hitbox:      Hitbox{Width: 20, Height: 20}}
+		Hitbox:      Hitbox{Width: 10, Height: 10},
+		Grazebox:    Hitbox{Width: 40, Height: 40},
+	}
 
 	player.Hitbox.CenterOn(player.X+player.Width/2, player.Y+player.Height/2)
+	player.Grazebox.CenterOn(player.X+player.Width/2, player.Y+player.Height/2)
 
 	return &Game{
 		player:       player,

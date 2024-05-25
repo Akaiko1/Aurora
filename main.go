@@ -11,7 +11,7 @@ func main() {
 	game_loop := game.NewGame()
 
 	ebiten.SetWindowSize(game.ScreenWidth, game.ScreenHeight)
-	ebiten.SetWindowTitle("Side Scroller Game")
+	ebiten.SetWindowTitle("S-lav-o")
 	if err := ebiten.RunGame(game_loop); err != nil {
 		log.Fatal(err)
 	}

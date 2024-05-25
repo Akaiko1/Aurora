@@ -7,6 +7,12 @@ func (g *Game) handleEnemyHit(enemy *Enemy) {
 	enemy.Hitbox.X = 0
 	enemy.Hitbox.Y = 0
 	g.setRandomDirection(enemy)
+	g.player.Score++
+}
+
+func (g *Game) handlePlayerHit() {
+	g.player.Score--
+	g.player.Hits++
 }
 
 func (g *Game) setRandomDirection(enemy *Enemy) {
