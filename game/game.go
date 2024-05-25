@@ -23,44 +23,10 @@ type Game struct {
 	flagHitboxes bool
 }
 
-type Hitbox struct {
-	X, Y, Width, Height float32
-}
-
-// Check if two hitboxes intersect
-func (hb *Hitbox) Intersects(other *Hitbox) bool {
-	return hb.X < other.X+other.Width &&
-		hb.X+hb.Width > other.X &&
-		hb.Y < other.Y+other.Height &&
-		hb.Y+hb.Height > other.Y
-}
-
-type Player struct {
-	X, Y, Width, Height float32
-	Speed               float32
-	Projectiles         []*Projectile
-	Hitbox              Hitbox
-	Grazebox            Hitbox
-	Hits                int
-	Grazing             *Projectile
-	Score               int
-}
-
-type Enemy struct {
-	X, Y, Width, Height float32
-	SpeedX, SpeedY      float32
-	Hitbox              Hitbox
-}
-
-type Projectile struct {
-	X, Y, Width, Height float32
-	Speed               float32
-	Hitbox              Hitbox
-}
-
 var (
 	mplusFaceSource *text.GoTextFaceSource
 	mplusNormalFace *text.GoTextFace
+	characterSprite *ebiten.Image
 )
 
 func init() {
@@ -74,6 +40,8 @@ func init() {
 		Source: mplusFaceSource,
 		Size:   24,
 	}
+
+	characterSprite, _ = ReadImage("sprites/yellow_character.png")
 }
 
 // Update updates the game state.
@@ -84,7 +52,7 @@ func (g *Game) Update() error {
 	g.frameCount++
 
 	// Handle player controls
-	g.playerControls()
+	g.playerEvents()
 
 	// Spawn a new enemy
 	g.enemySpawn()
@@ -113,14 +81,17 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	text.Draw(screen, fmt.Sprintf("You were hit: %d", g.player.Hits), mplusNormalFace, text_op)
 	text_op.GeoM.Translate(80, 30)
 	text.Draw(screen, fmt.Sprintf("Score: %d", g.player.Score), mplusNormalFace, text_op)
+
 	if g.player.Grazing != nil {
 		text_op.GeoM.Translate(0, 390)
 		text.Draw(screen, "Graze!", mplusNormalFace, text_op)
 	}
 
 	// Draw the player
-	vector.DrawFilledRect(screen, g.player.X, g.player.Y, g.player.Width, g.player.Height,
-		color.RGBA{0, 255, 0, 255}, true)
+	options := &ebiten.DrawImageOptions{}
+	options.GeoM.Translate(float64(g.player.X), float64(g.player.Y))
+	screen.DrawImage(g.player.Sprite, options)
+
 	// Draw player projectiles
 	for _, projectile := range g.player.Projectiles {
 		vector.DrawFilledRect(screen, projectile.X, projectile.Y, 5, 10, color.RGBA{0, 255, 255, 255}, true)
@@ -171,6 +142,7 @@ func NewGame() *Game {
 		Grazebox:    Hitbox{Width: 40, Height: 40},
 	}
 
+	player.Sprite = characterSprite
 	player.Hitbox.CenterOn(player.X+player.Width/2, player.Y+player.Height/2)
 	player.Grazebox.CenterOn(player.X+player.Width/2, player.Y+player.Height/2)
 

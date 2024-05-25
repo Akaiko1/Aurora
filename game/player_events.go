@@ -4,23 +4,23 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func (g *Game) playerControls() {
-	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
+func (g *Game) playerEvents() {
+	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) && g.player.X-g.player.Speed > 0 {
 		g.player.X -= g.player.Speed
 		g.player.Hitbox.X -= g.player.Speed
 		g.player.Grazebox.X -= g.player.Speed
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
+	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) && g.player.X+g.player.Width+g.player.Speed < ScreenWidth {
 		g.player.X += g.player.Speed
 		g.player.Hitbox.X += g.player.Speed
 		g.player.Grazebox.X += g.player.Speed
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
+	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) && g.player.Y-g.player.Speed > 0 {
 		g.player.Y -= g.player.Speed
 		g.player.Hitbox.Y -= g.player.Speed
 		g.player.Grazebox.Y -= g.player.Speed
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
+	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) && g.player.Y+g.player.Height+g.player.Speed < ScreenHeight {
 		g.player.Y += g.player.Speed
 		g.player.Hitbox.Y += g.player.Speed
 		g.player.Grazebox.Y += g.player.Speed
