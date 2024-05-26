@@ -47,6 +47,11 @@ func (g *Game) enemyActions(enemy *Enemy) {
 	// Enemy shooting logic
 	if g.frameCount%enemyShootInterval == 0 {
 		enemy.enemyShoot(&g.projectiles) // Pass the address of g.projectiles
+		enemy.Attacking = true
+	}
+
+	if g.frameCount%65 == 0 && enemy.Attacking {
+		enemy.Attacking = false
 	}
 
 	// Check for collisions with the enemy

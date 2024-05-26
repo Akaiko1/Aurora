@@ -3,6 +3,7 @@ package game
 import (
 	"bytes"
 	"fmt"
+	"image"
 	"image/color"
 	"log"
 	"math/rand"
@@ -26,7 +27,7 @@ type Game struct {
 var (
 	mplusFaceSource *text.GoTextFaceSource
 	mplusNormalFace *text.GoTextFace
-	characterSprite *ebiten.Image
+	frames          *ebiten.Image
 )
 
 func init() {
@@ -41,7 +42,7 @@ func init() {
 		Size:   24,
 	}
 
-	characterSprite, _ = ReadImage("sprites/yellow_character.png")
+	frames, _ = ReadImage("sprites/animations.png")
 }
 
 // Update updates the game state.
@@ -74,7 +75,7 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0, 0, 0, 255})
+	screen.Fill(color.RGBA{0, 55, 0, 255})
 
 	text_op := &text.DrawOptions{}
 	text_op.GeoM.Translate(ScreenWidth-250, 20)
@@ -90,7 +91,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// Draw the player
 	options := &ebiten.DrawImageOptions{}
 	options.GeoM.Translate(float64(g.player.X), float64(g.player.Y))
-	screen.DrawImage(g.player.Sprite, options)
+	if g.player.Attacking {
+		screen.DrawImage(frames.SubImage(image.Rect(32, 0, 64, 32)).(*ebiten.Image), options)
+	} else {
+		screen.DrawImage(frames.SubImage(image.Rect(0, 0, 32, 32)).(*ebiten.Image), options)
+	}
 
 	// Draw player projectiles
 	for _, projectile := range g.player.Projectiles {
@@ -98,7 +103,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	// Draw the enemies
 	for _, enemy := range g.enemies {
-		vector.DrawFilledRect(screen, enemy.X, enemy.Y, 32, 32, color.RGBA{255, 0, 0, 255}, true)
+		options := &ebiten.DrawImageOptions{}
+		options.GeoM.Translate(float64(enemy.X), float64(enemy.Y))
+		if !enemy.Attacking {
+			screen.DrawImage(frames.SubImage(image.Rect(0, 32, 32, 64)).(*ebiten.Image), options)
+		} else {
+			screen.DrawImage(frames.SubImage(image.Rect(32, 32, 64, 64)).(*ebiten.Image), options)
+		}
 	}
 	// Draw projectiles
 	for _, projectile := range g.projectiles {
@@ -139,10 +150,9 @@ func NewGame() *Game {
 		Speed:       playerSpeed,
 		Projectiles: []*Projectile{},
 		Hitbox:      Hitbox{Width: 10, Height: 10},
-		Grazebox:    Hitbox{Width: 40, Height: 40},
+		Grazebox:    Hitbox{Width: 50, Height: 50},
 	}
 
-	player.Sprite = characterSprite
 	player.Hitbox.CenterOn(player.X+player.Width/2, player.Y+player.Height/2)
 	player.Grazebox.CenterOn(player.X+player.Width/2, player.Y+player.Height/2)
 
@@ -151,6 +161,6 @@ func NewGame() *Game {
 		projectiles:  []*Projectile{},
 		enemies:      []*Enemy{},
 		rng:          rand.New(rand.NewSource(time.Now().UnixNano())),
-		flagHitboxes: true,
+		flagHitboxes: false,
 	}
 }

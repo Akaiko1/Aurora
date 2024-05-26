@@ -26,11 +26,23 @@ func (g *Game) playerEvents() {
 		g.player.Grazebox.Y += g.player.Speed
 	}
 
+	// Toggle hitboxes with the B key
+	if ebiten.IsKeyPressed(ebiten.KeyB) {
+		if g.frameCount%6 == 0 {
+			g.flagHitboxes = !g.flagHitboxes
+		}
+	}
+
 	// Player shooting
 	if ebiten.IsKeyPressed(ebiten.KeySpace) {
 		if g.frameCount%5 == 0 {
 			g.playerShoot()
+			g.player.Attacking = true
 		}
+	}
+
+	if g.frameCount%10 == 0 && g.player.Attacking {
+		g.player.Attacking = false
 	}
 
 	// Playes projectiles interaction
