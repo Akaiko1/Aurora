@@ -82,7 +82,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	text.Draw(screen, fmt.Sprintf("You were hit: %d", g.player.Hits), mplusNormalFace, text_op)
 	text_op.GeoM.Translate(80, 30)
 	text.Draw(screen, fmt.Sprintf("Score: %d", g.player.Score), mplusNormalFace, text_op)
-
 	if g.player.Grazing != nil {
 		text_op.GeoM.Translate(0, 390)
 		text.Draw(screen, "Graze!", mplusNormalFace, text_op)
@@ -96,11 +95,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	} else {
 		screen.DrawImage(frames.SubImage(image.Rect(0, 0, 32, 32)).(*ebiten.Image), options)
 	}
-
 	// Draw player projectiles
 	for _, projectile := range g.player.Projectiles {
 		vector.DrawFilledRect(screen, projectile.X, projectile.Y, 5, 10, color.RGBA{0, 255, 255, 255}, true)
 	}
+
 	// Draw the enemies
 	for _, enemy := range g.enemies {
 		options := &ebiten.DrawImageOptions{}
