@@ -17,6 +17,16 @@ func deleteProjectile(slice []*Projectile, index int) []*Projectile {
 	return append(slice[:index], slice[index+1:]...)
 }
 
+// Deletes enemy from slice by reference
+func deleteEnemy(slice []*Enemy, enemy *Enemy) ([]*Enemy, bool) {
+	for i, e := range slice {
+		if e == enemy {
+			return append(slice[:i], slice[i+1:]...), true
+		}
+	}
+	return slice, false
+}
+
 // Check if two hitboxes intersect
 func (hb *Hitbox) Intersects(other *Hitbox) bool {
 	return hb.X < other.X+other.Width &&

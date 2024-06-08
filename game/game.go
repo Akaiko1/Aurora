@@ -3,46 +3,39 @@ package game
 import (
 	"bytes"
 	"fmt"
-	"image"
 	"image/color"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-type Game struct {
-	player       *Player
-	projectiles  []*Projectile
-	enemies      []*Enemy
-	frameCount   int
-	rng          *rand.Rand
-	flagHitboxes bool
-}
-
 var (
-	mplusFaceSource *text.GoTextFaceSource
 	mplusNormalFace *text.GoTextFace
 	frames          *ebiten.Image
 )
 
 func init() {
-	s, err := text.NewGoTextFaceSource(bytes.NewReader(fonts.MPlus1pRegular_ttf))
+	// Open the font file
+	fontBytes, err := os.ReadFile("assets/Jacquard12-Regular.ttf")
 	if err != nil {
 		log.Fatal(err)
 	}
-	mplusFaceSource = s
+
+	mplusFaceSource, err := text.NewGoTextFaceSource(bytes.NewReader(fontBytes))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	mplusNormalFace = &text.GoTextFace{
 		Source: mplusFaceSource,
 		Size:   24,
 	}
 
-	frames, _ = ReadImage("sprites/animations.png")
+	frames, _ = ReadImage("assets/sprites/animations.png")
 }
 
 // Update updates the game state.
@@ -50,25 +43,57 @@ func init() {
 // moves enemies, and bounces enemies off the screen edges.
 func (g *Game) Update() error {
 	// Increment the frame count
-	g.frameCount++
+	switch g.State {
+	case Playing:
+		g.FrameCount = (g.FrameCount + 1) % 120
 
-	// Handle player controls
-	g.playerEvents()
+		if len(g.Enemies) == 0 && len(g.Spawned) == 0 {
+			g.State = SwitchPhase
+		}
 
-	// Spawn a new enemy
-	g.enemySpawn()
+		// Handle player controls
+		g.playerEvents()
 
-	// Update projectiles
-	// Remove off-screen projectiles
-	g.projectilesMovements()
-	g.playerProjectilesMovements()
+		// Spawn a new enemy
+		g.enemySpawn()
 
-	// Change enemy direction periodically
-	// Change direction every 120 frames (2 seconds)
-	// Move enemy
-	// Bounce enemy off the screen edges
-	for _, enemy := range g.enemies {
-		g.enemyActions(enemy)
+		// Update projectiles
+		g.projectilesMovements()
+		g.playerProjectilesMovements()
+
+		// Update enemies
+		for _, enemy := range g.Spawned {
+			g.enemyActions(enemy)
+		}
+	case SwitchLevel:
+		// Switch to the next level
+		if len(g.Scenarios) > 0 {
+			g.Scenario = g.Scenarios[0]
+			g.Phase = g.Scenario.Phases[0]
+			g.Scenario.Phases = g.Scenario.Phases[1:]
+			g.Enemies = g.Phase.Enemies
+			g.State = Playing
+		} else {
+			g.State = GameOver
+		}
+
+	case SwitchPhase:
+		// Switch to the next phase
+		if len(g.Scenario.Phases) > 0 {
+			g.Phase = g.Scenario.Phases[0]
+			g.Enemies = g.Phase.Enemies
+			g.State = Playing
+
+			// Remove the current phase
+			g.Scenario.Phases = g.Scenario.Phases[1:]
+			break
+		}
+
+		// Switch to the next level if there are no more phases
+		if len(g.Scenario.Phases) == 0 {
+			g.Scenarios = g.Scenarios[1:]
+			g.State = SwitchLevel
+		}
 	}
 
 	return nil
@@ -77,62 +102,17 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0, 55, 0, 255})
 
-	text_op := &text.DrawOptions{}
-	text_op.GeoM.Translate(ScreenWidth-250, 20)
-	text.Draw(screen, fmt.Sprintf("You were hit: %d", g.player.Hits), mplusNormalFace, text_op)
-	text_op.GeoM.Translate(80, 30)
-	text.Draw(screen, fmt.Sprintf("Score: %d", g.player.Score), mplusNormalFace, text_op)
-	if g.player.Grazing != nil {
-		text_op.GeoM.Translate(0, 390)
-		text.Draw(screen, "Graze!", mplusNormalFace, text_op)
-	}
-
-	// Draw the player
-	options := &ebiten.DrawImageOptions{}
-	options.GeoM.Translate(float64(g.player.X), float64(g.player.Y))
-	if g.player.Attacking {
-		screen.DrawImage(frames.SubImage(image.Rect(32, 0, 64, 32)).(*ebiten.Image), options)
-	} else {
-		screen.DrawImage(frames.SubImage(image.Rect(0, 0, 32, 32)).(*ebiten.Image), options)
-	}
-	// Draw player projectiles
-	for _, projectile := range g.player.Projectiles {
-		vector.DrawFilledRect(screen, projectile.X, projectile.Y, 5, 10, color.RGBA{0, 255, 255, 255}, true)
-	}
-
-	// Draw the enemies
-	for _, enemy := range g.enemies {
-		options := &ebiten.DrawImageOptions{}
-		options.GeoM.Translate(float64(enemy.X), float64(enemy.Y))
-		if !enemy.Attacking {
-			screen.DrawImage(frames.SubImage(image.Rect(0, 32, 32, 64)).(*ebiten.Image), options)
-		} else {
-			screen.DrawImage(frames.SubImage(image.Rect(32, 32, 64, 64)).(*ebiten.Image), options)
-		}
-	}
-	// Draw projectiles
-	for _, projectile := range g.projectiles {
-		vector.DrawFilledRect(screen, projectile.X, projectile.Y, 5, 10, color.RGBA{255, 255, 0, 255}, true)
-	}
-
-	if g.flagHitboxes {
-		vector.StrokeRect(screen, g.player.Hitbox.X, g.player.Hitbox.Y,
-			g.player.Hitbox.Width, g.player.Hitbox.Height, 2, color.RGBA{255, 255, 255, 255}, true)
-		vector.StrokeRect(screen, g.player.Grazebox.X, g.player.Grazebox.Y,
-			g.player.Grazebox.Width, g.player.Grazebox.Height, 2, color.RGBA{255, 125, 255, 255}, true)
-
-		for _, projectile := range g.player.Projectiles {
-			vector.StrokeRect(screen, projectile.Hitbox.X, projectile.Hitbox.Y,
-				projectile.Hitbox.Width, projectile.Hitbox.Height, 2, color.RGBA{255, 255, 255, 255}, true)
-		}
-		for _, enemy := range g.enemies {
-			vector.StrokeRect(screen, enemy.Hitbox.X, enemy.Hitbox.Y,
-				enemy.Hitbox.Width, enemy.Hitbox.Height, 2, color.RGBA{255, 255, 255, 255}, true)
-		}
-		for _, projectile := range g.projectiles {
-			vector.StrokeRect(screen, projectile.Hitbox.X, projectile.Hitbox.Y,
-				projectile.Hitbox.Width, projectile.Hitbox.Height, 2, color.RGBA{255, 255, 255, 255}, true)
-		}
+	switch g.State {
+	case Playing:
+		g.drawGameplay(screen)
+	case GameOver:
+		text_op := &text.DrawOptions{}
+		text_op.GeoM.Translate(ScreenWidth/2-100, ScreenHeight/2-50)
+		text.Draw(screen, "Game Over", mplusNormalFace, text_op)
+		text_op.GeoM.Translate(0, 50)
+		text.Draw(screen, fmt.Sprintf("Score: %d", g.Player.Score), mplusNormalFace, text_op)
+	case Paused:
+		text.Draw(screen, "Paused", mplusNormalFace, &text.DrawOptions{})
 	}
 }
 
@@ -154,12 +134,15 @@ func NewGame() *Game {
 
 	player.Hitbox.CenterOn(player.X+player.Width/2, player.Y+player.Height/2)
 	player.Grazebox.CenterOn(player.X+player.Width/2, player.Y+player.Height/2)
+	randomSource := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	return &Game{
-		player:       player,
-		projectiles:  []*Projectile{},
-		enemies:      []*Enemy{},
-		rng:          rand.New(rand.NewSource(time.Now().UnixNano())),
-		flagHitboxes: false,
+		Player:       player,
+		Projectiles:  []*Projectile{},
+		Enemies:      []*Enemy{},
+		RandomSource: randomSource,
+		FlagHitboxes: false,
+		State:        SwitchLevel,
+		Scenarios:    getGameScenarios(),
 	}
 }

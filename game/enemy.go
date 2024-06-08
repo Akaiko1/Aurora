@@ -1,15 +1,17 @@
 package game
 
 func (g *Game) enemySpawn() {
-	// Spawn a new enemy
-	if len(g.enemies) > 1 {
+	if len(g.Spawned) > 1 || len(g.Enemies) == 0 {
 		return
 	}
 
-	enemy := &Enemy{X: 50, Y: 50, Width: 32, Height: 32, SpeedX: 1, SpeedY: 1}
+	enemy := g.Enemies[0]
 	enemy.Hitbox = Hitbox{X: enemy.X, Y: enemy.Y, Width: enemy.Width, Height: enemy.Height}
 	g.setRandomDirection(enemy)
-	g.enemies = append(g.enemies, enemy)
+	g.Spawned = append(g.Spawned, enemy)
+
+	// Remove the enemy from the list
+	g.Enemies = g.Enemies[1:]
 }
 
 func (enemy *Enemy) enemyShoot(projectiles *[]*Projectile) {
@@ -28,7 +30,7 @@ func (enemy *Enemy) enemyShoot(projectiles *[]*Projectile) {
 // updates the enemy's position based on its speed,
 // and reverses the speed if the enemy reaches the boundaries of the screen.
 func (g *Game) enemyActions(enemy *Enemy) {
-	if g.frameCount%120 == 0 {
+	if g.FrameCount%90 == 0 {
 		g.setRandomDirection(enemy)
 	}
 
@@ -45,17 +47,18 @@ func (g *Game) enemyActions(enemy *Enemy) {
 	}
 
 	// Enemy shooting logic
-	if g.frameCount%enemyShootInterval == 0 {
-		enemy.enemyShoot(&g.projectiles) // Pass the address of g.projectiles
-		enemy.Attacking = true
+	if g.FrameCount%enemyShootInterval == 0 {
+		enemy.enemyShoot(&g.Projectiles) // Pass the address of g.projectiles
+		enemy.IsAttacking = true
+		enemy.AttackStartFrame = g.FrameCount
 	}
 
-	if g.frameCount%65 == 0 && enemy.Attacking {
-		enemy.Attacking = false
+	if enemy.IsAttacking && (g.FrameCount-enemy.AttackStartFrame+120)%120 >= 12 {
+		enemy.IsAttacking = false
 	}
 
 	// Check for collisions with the enemy
-	for _, projectile := range g.player.Projectiles {
+	for _, projectile := range g.Player.Projectiles {
 		if enemy.Hitbox.Intersects(&projectile.Hitbox) {
 			g.handleEnemyHit(enemy) // Handle the enemy hit
 			break
@@ -64,16 +67,16 @@ func (g *Game) enemyActions(enemy *Enemy) {
 }
 
 func (g *Game) projectilesMovements() {
-	for _, projectile := range g.projectiles {
+	for _, projectile := range g.Projectiles {
 		projectile.Y += projectile.Speed
 		projectile.Hitbox.Y += projectile.Speed
 	}
 
-	activeProjectiles := g.projectiles[:0]
-	for _, projectile := range g.projectiles {
+	activeProjectiles := g.Projectiles[:0]
+	for _, projectile := range g.Projectiles {
 		if projectile.Y < ScreenHeight {
 			activeProjectiles = append(activeProjectiles, projectile)
 		}
 	}
-	g.projectiles = activeProjectiles
+	g.Projectiles = activeProjectiles
 }
