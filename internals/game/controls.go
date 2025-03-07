@@ -1,6 +1,9 @@
 package game
 
 import (
+	"scroller_game/internals/config"
+	"scroller_game/internals/events"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -10,7 +13,7 @@ func (g *Game) playerEvents() {
 		g.Player.Hitbox.X -= g.Player.Speed
 		g.Player.Grazebox.X -= g.Player.Speed
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) && g.Player.X+g.Player.Width+g.Player.Speed < ScreenWidth {
+	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) && g.Player.X+g.Player.Width+g.Player.Speed < config.ScreenWidth {
 		g.Player.X += g.Player.Speed
 		g.Player.Hitbox.X += g.Player.Speed
 		g.Player.Grazebox.X += g.Player.Speed
@@ -20,7 +23,7 @@ func (g *Game) playerEvents() {
 		g.Player.Hitbox.Y -= g.Player.Speed
 		g.Player.Grazebox.Y -= g.Player.Speed
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) && g.Player.Y+g.Player.Height+g.Player.Speed < ScreenHeight {
+	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) && g.Player.Y+g.Player.Height+g.Player.Speed < config.ScreenHeight {
 		g.Player.Y += g.Player.Speed
 		g.Player.Hitbox.Y += g.Player.Speed
 		g.Player.Grazebox.Y += g.Player.Speed
@@ -50,7 +53,7 @@ func (g *Game) playerEvents() {
 	for idx, projectile := range g.Projectiles {
 		if g.Player.Hitbox.Intersects(&projectile.Hitbox) {
 			g.handlePlayerHit()
-			g.Projectiles = deleteProjectile(g.Projectiles, idx)
+			g.Projectiles = events.DeleteProjectile(g.Projectiles, idx)
 			break
 		}
 
@@ -65,35 +68,4 @@ func (g *Game) playerEvents() {
 		}
 
 	}
-}
-
-func (g *Game) playerProjectilesMovements() {
-	// Update player projectiles
-	for _, projectile := range g.Player.Projectiles {
-		projectile.Y -= projectile.Speed
-		projectile.Hitbox.Y -= projectile.Speed
-	}
-
-	// Remove off-screen player projectiles
-	activeProjectiles := g.Player.Projectiles[:0]
-	for _, projectile := range g.Player.Projectiles {
-		if projectile.Y > 0 {
-			activeProjectiles = append(activeProjectiles, projectile)
-		}
-	}
-	g.Player.Projectiles = activeProjectiles
-}
-
-func (g *Game) playerShoot() {
-	if len(g.Player.Projectiles) >= 3 {
-		return // Limit to 3 projectiles
-	}
-	projectile := &Projectile{
-		X:     g.Player.X + g.Player.Width/2, // Center of the player
-		Y:     g.Player.Y,
-		Width: 5, Height: 10,
-		Speed: projectileSpeed,
-	}
-	projectile.Hitbox = Hitbox{X: projectile.X, Y: projectile.Y, Width: projectile.Width, Height: projectile.Height}
-	g.Player.Projectiles = append(g.Player.Projectiles, projectile)
 }

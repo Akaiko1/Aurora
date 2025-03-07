@@ -1,46 +1,56 @@
 package game
 
 import (
-	"bytes"
 	"fmt"
 	"image/color"
-	"log"
 	"math/rand"
-	"os"
-	"time"
+	"scroller_game/internals/config"
+	"scroller_game/internals/entities"
+	"scroller_game/internals/inputs"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-var (
-	mplusNormalFace *text.GoTextFace
-	frames          *ebiten.Image
+const (
+	StartMenu GameState = iota
+	Playing
+	SwitchLevel
+	SwitchPhase
+	Paused
+	GameOver
 )
 
-func init() {
-	// Open the font file
-	fontBytes, err := os.ReadFile("assets/Jacquard12-Regular.ttf")
-	if err != nil {
-		log.Fatal(err)
-	}
+type GameState int
 
-	mplusFaceSource, err := text.NewGoTextFaceSource(bytes.NewReader(fontBytes))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	mplusNormalFace = &text.GoTextFace{
-		Source: mplusFaceSource,
-		Size:   24,
-	}
-
-	frames, _ = ReadImage("assets/sprites/animations.png")
+type Game struct {
+	Player       *entities.Player
+	Projectiles  []*entities.Projectile
+	FrameCount   int
+	Enemies      []*entities.Enemy
+	Spawned      []*entities.Enemy
+	State        GameState
+	Scenario     *Scenario
+	Phase        *Phase
+	RandomSource *rand.Rand
+	Scenarios    []*Scenario
+	FlagHitboxes bool
 }
 
-// Update updates the game state.
-// It handles player controls, updates projectiles, changes enemy direction periodically,
-// moves enemies, and bounces enemies off the screen edges.
+type Scenario struct {
+	Name   string
+	Phases []*Phase
+}
+
+type Phase struct {
+	Name    string
+	Enemies []*entities.Enemy
+}
+
+func init() {
+	mplusNormalFace, frames = inputs.SetFontAndImages()
+}
+
 func (g *Game) Update() error {
 	// Increment the frame count
 	switch g.State {
@@ -104,10 +114,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	switch g.State {
 	case Playing:
-		g.drawGameplay(screen)
+		g.DrawGameplay(screen)
 	case GameOver:
 		text_op := &text.DrawOptions{}
-		text_op.GeoM.Translate(ScreenWidth/2-100, ScreenHeight/2-50)
+		text_op.GeoM.Translate(config.ScreenWidth/2-100, config.ScreenHeight/2-50)
 		text.Draw(screen, "Game Over", mplusNormalFace, text_op)
 		text_op.GeoM.Translate(0, 50)
 		text.Draw(screen, fmt.Sprintf("Score: %d", g.Player.Score), mplusNormalFace, text_op)
@@ -117,32 +127,5 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return ScreenWidth, ScreenHeight
-}
-
-func NewGame() *Game {
-	player := &Player{
-		X:           ScreenWidth / 2,
-		Y:           ScreenHeight / 2,
-		Width:       32,
-		Height:      32,
-		Speed:       playerSpeed,
-		Projectiles: []*Projectile{},
-		Hitbox:      Hitbox{Width: 10, Height: 10},
-		Grazebox:    Hitbox{Width: 50, Height: 50},
-	}
-
-	player.Hitbox.CenterOn(player.X+player.Width/2, player.Y+player.Height/2)
-	player.Grazebox.CenterOn(player.X+player.Width/2, player.Y+player.Height/2)
-	randomSource := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	return &Game{
-		Player:       player,
-		Projectiles:  []*Projectile{},
-		Enemies:      []*Enemy{},
-		RandomSource: randomSource,
-		FlagHitboxes: false,
-		State:        SwitchLevel,
-		Scenarios:    getGameScenarios(),
-	}
+	return config.ScreenWidth, config.ScreenHeight
 }
