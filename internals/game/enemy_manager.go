@@ -9,7 +9,7 @@ import (
 
 func (g *Game) handleEnemyHit(enemy *entities.Enemy) {
 	// Remove the enemy from the list
-	g.Spawned, _ = events.DeleteEnemy(g.Spawned, enemy)
+	g.SpawnedEnemies, _ = events.DeleteEnemy(g.SpawnedEnemies, enemy)
 	g.Player.Score++
 }
 
@@ -21,14 +21,14 @@ func (g *Game) setRandomDirection(enemy *entities.Enemy) {
 }
 
 func (g *Game) enemySpawn() {
-	if len(g.Spawned) > 1 || len(g.Enemies) == 0 {
+	if len(g.SpawnedEnemies) > 1 || len(g.Enemies) == 0 {
 		return
 	}
 
 	enemy := g.Enemies[0]
 	enemy.Hitbox = physics.Hitbox{X: enemy.X, Y: enemy.Y, Width: enemy.Width, Height: enemy.Height}
 	g.setRandomDirection(enemy)
-	g.Spawned = append(g.Spawned, enemy)
+	g.SpawnedEnemies = append(g.SpawnedEnemies, enemy)
 
 	// Remove the enemy from the list
 	g.Enemies = g.Enemies[1:]
@@ -69,55 +69,4 @@ func (g *Game) enemyActions(enemy *entities.Enemy) {
 			break
 		}
 	}
-}
-
-func (g *Game) projectilesMovements() {
-	for _, projectile := range g.Projectiles {
-		projectile.Y += projectile.Speed
-		projectile.Hitbox.Y += projectile.Speed
-	}
-
-	activeProjectiles := g.Projectiles[:0]
-	for _, projectile := range g.Projectiles {
-		if projectile.Y < config.ScreenHeight {
-			activeProjectiles = append(activeProjectiles, projectile)
-		}
-	}
-	g.Projectiles = activeProjectiles
-}
-
-func (g *Game) playerProjectilesMovements() {
-	// Update player projectiles
-	for _, projectile := range g.Player.Projectiles {
-		projectile.Y -= projectile.Speed
-		projectile.Hitbox.Y -= projectile.Speed
-	}
-
-	// Remove off-screen player projectiles
-	activeProjectiles := g.Player.Projectiles[:0]
-	for _, projectile := range g.Player.Projectiles {
-		if projectile.Y > 0 {
-			activeProjectiles = append(activeProjectiles, projectile)
-		}
-	}
-	g.Player.Projectiles = activeProjectiles
-}
-
-func (g *Game) handlePlayerHit() {
-	g.Player.Score--
-	g.Player.Hits++
-}
-
-func (g *Game) playerShoot() {
-	if len(g.Player.Projectiles) >= 3 {
-		return // Limit to 3 projectiles
-	}
-	projectile := &entities.Projectile{
-		X:     g.Player.X + g.Player.Width/2, // Center of the player
-		Y:     g.Player.Y,
-		Width: 5, Height: 10,
-		Speed: config.ProjectileSpeed,
-	}
-	projectile.Hitbox = physics.Hitbox{X: projectile.X, Y: projectile.Y, Width: projectile.Width, Height: projectile.Height}
-	g.Player.Projectiles = append(g.Player.Projectiles, projectile)
 }

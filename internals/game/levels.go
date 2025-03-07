@@ -7,26 +7,44 @@ import (
 	"time"
 )
 
+type Scenario struct {
+	Name   string
+	Phases []*Phase
+}
+
+type Phase struct {
+	Name    string
+	Enemies []*entities.Enemy
+}
+
 func GetGameScenarios() []*Scenario {
+	// Create Phases
 	Phase1 := &Phase{
 		Name:    "Phase 1",
-		Enemies: []*entities.Enemy{mob(), mob(), mob(), mob(), mob(), mob()},
+		Enemies: []*entities.Enemy{mob(), mob(), mob()},
 	}
 	Phase2 := &Phase{
 		Name:    "Phase 2",
-		Enemies: []*entities.Enemy{mob(), mob(), mob(), mob(), mob(), mob()},
+		Enemies: []*entities.Enemy{mob(), mob()},
 	}
 	Final := &Phase{
 		Name:    "Final",
-		Enemies: []*entities.Enemy{mob(), mob(), mob(), mob(), mob(), mob()},
+		Enemies: []*entities.Enemy{mob()},
 	}
 
+	// Create Scenarios
 	Scenario1 := &Scenario{
 		Name:   "Scenario 1",
 		Phases: []*Phase{Phase1, Phase2, Final},
 	}
 
-	scenarios := []*Scenario{Scenario1}
+	Scenario2 := &Scenario{
+		Name:   "Scenario 2",
+		Phases: []*Phase{Phase1, Phase2, Final},
+	}
+
+	// Set up the game
+	scenarios := []*Scenario{Scenario1, Scenario2}
 	return scenarios
 }
 

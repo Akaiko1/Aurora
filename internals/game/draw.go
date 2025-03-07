@@ -46,7 +46,7 @@ func (g *Game) DrawGameplay(screen *ebiten.Image) {
 		vector.DrawFilledRect(screen, projectile.X, projectile.Y, 5, 10, color.RGBA{0, 255, 255, 255}, true)
 	}
 
-	for _, enemy := range g.Spawned {
+	for _, enemy := range g.SpawnedEnemies {
 		options := &ebiten.DrawImageOptions{}
 		options.GeoM.Translate(float64(enemy.X), float64(enemy.Y))
 		if !enemy.IsAttacking {

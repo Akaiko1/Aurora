@@ -13,6 +13,7 @@ type Enemy struct {
 	AttackStartFrame    int
 }
 
+// TODO: move to manager
 func (enemy *Enemy) EnemyShoot(projectiles *[]*Projectile) {
 	projectile := &Projectile{
 		X:     enemy.X + 13, // Center of the enemy

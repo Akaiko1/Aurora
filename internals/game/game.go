@@ -24,27 +24,17 @@ const (
 type GameState int
 
 type Game struct {
-	Player       *entities.Player
-	Projectiles  []*entities.Projectile
-	FrameCount   int
-	Enemies      []*entities.Enemy
-	Spawned      []*entities.Enemy
-	State        GameState
-	Scenario     *Scenario
-	Phase        *Phase
-	RandomSource *rand.Rand
-	Scenarios    []*Scenario
-	FlagHitboxes bool
-}
-
-type Scenario struct {
-	Name   string
-	Phases []*Phase
-}
-
-type Phase struct {
-	Name    string
-	Enemies []*entities.Enemy
+	Player         *entities.Player
+	Projectiles    []*entities.Projectile
+	FrameCount     int
+	Enemies        []*entities.Enemy
+	SpawnedEnemies []*entities.Enemy
+	State          GameState
+	Scenario       *Scenario
+	Phase          *Phase
+	RandomSource   *rand.Rand
+	Scenarios      []*Scenario
+	FlagHitboxes   bool
 }
 
 func init() {
@@ -57,7 +47,7 @@ func (g *Game) Update() error {
 	case Playing:
 		g.FrameCount = (g.FrameCount + 1) % 120
 
-		if len(g.Enemies) == 0 && len(g.Spawned) == 0 {
+		if len(g.Enemies) == 0 && len(g.SpawnedEnemies) == 0 {
 			g.State = SwitchPhase
 		}
 
@@ -72,38 +62,42 @@ func (g *Game) Update() error {
 		g.playerProjectilesMovements()
 
 		// Update enemies
-		for _, enemy := range g.Spawned {
+		for _, enemy := range g.SpawnedEnemies {
 			g.enemyActions(enemy)
 		}
 	case SwitchLevel:
-		// Switch to the next level
-		if len(g.Scenarios) > 0 {
-			g.Scenario = g.Scenarios[0]
-			g.Phase = g.Scenario.Phases[0]
-			g.Scenario.Phases = g.Scenario.Phases[1:]
-			g.Enemies = g.Phase.Enemies
-			g.State = Playing
-		} else {
+		if len(g.Scenarios) == 0 {
 			g.State = GameOver
+			return nil
 		}
+
+		g.Scenario = g.Scenarios[0]
+		g.Scenarios = g.Scenarios[1:]
+
+		// We have a scenario but need to check if it has phases
+		if len(g.Scenario.Phases) == 0 {
+			g.State = SwitchLevel // Stay in this state to process next scenario
+			return nil
+		}
+
+		// Setup first phase and start playing
+		g.Phase = g.Scenario.Phases[0]
+		g.Scenario.Phases = g.Scenario.Phases[1:]
+		g.Enemies = g.Phase.Enemies
+		g.State = Playing
 
 	case SwitchPhase:
-		// Switch to the next phase
-		if len(g.Scenario.Phases) > 0 {
-			g.Phase = g.Scenario.Phases[0]
-			g.Enemies = g.Phase.Enemies
-			g.State = Playing
-
-			// Remove the current phase
-			g.Scenario.Phases = g.Scenario.Phases[1:]
-			break
-		}
-
-		// Switch to the next level if there are no more phases
 		if len(g.Scenario.Phases) == 0 {
-			g.Scenarios = g.Scenarios[1:]
+			// No more phases, move to next scenario
 			g.State = SwitchLevel
+			return nil
 		}
+
+		// Setup next phase and continue playing
+		g.Phase = g.Scenario.Phases[0]
+		g.Scenario.Phases = g.Scenario.Phases[1:]
+		g.Enemies = g.Phase.Enemies
+		g.State = Playing
 	}
 
 	return nil
