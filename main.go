@@ -36,6 +36,7 @@ func NewGame() *game.Game {
 		FlagHitboxes: false,
 		State:        game.SwitchLevel,
 		Scenarios:    game.GetGameScenarios(),
+		Background:   game.InitBackground(randomSource),
 	}
 }
 

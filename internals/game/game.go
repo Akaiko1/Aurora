@@ -35,6 +35,7 @@ type Game struct {
 	RandomSource   *rand.Rand
 	Scenarios      []*Scenario
 	FlagHitboxes   bool
+	Background     *Background
 }
 
 func init() {
@@ -104,7 +105,13 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{0, 55, 0, 255})
+	// Draw the background first
+	if g.Background != nil {
+		g.Background.Draw(screen)
+	} else {
+		// Fallback if background isn't initialized
+		screen.Fill(color.RGBA{0, 55, 0, 255})
+	}
 
 	switch g.State {
 	case Playing:
