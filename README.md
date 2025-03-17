@@ -1,16 +1,21 @@
-# S-Lav-O Ebiten based shooter (WIP)
+# Aurora: An Ebitengine Shooter
 
 ## Overview
 
-This repository contains the source code for a simple shooter game implemented in Golang using the Ebitengine game engine. Ebitengine is a simple and efficient game library for Go that makes game development straightforward. For more information, visit the [Ebitengine website](https://ebitengine.org).
+Aurora is a simple 2D shooter game built with Golang and the Ebitengine game library. This project is currently in early development with basic gameplay features implemented.
 
-## Features
+<img src="assets/preview.jpg" alt="Game Screenshot" width="480"/>
 
-<img src="assets/preview.jpg" alt="drawing" width="480"/>
+## Current Features
 
-- Simple and engaging gameplay
-- Powered by the Ebitengine game engine
-- Sprite-based graphics
+- Basic top-down shooter mechanics
+- Player character with movement and shooting
+- Simple enemy AI with random movement patterns
+- Projectile collision detection
+- Grazing system for scoring points by narrowly avoiding enemy bullets
+- Simple level progression with phases and scenarios
+- Togglable hitbox display (press B)
+- Background tiles with grass/no-grass variants
 
 ## Getting Started
 
@@ -23,8 +28,8 @@ To run this game, you need to have Go installed on your machine. You can downloa
 1. Clone the repository:
 
     ```sh
-    git clone https://github.com/Akaiko1/s-lav-o-game
-    cd shooter-game
+    git clone https://github.com/Akaiko1/aurora
+    cd aurora
     ```
 
 2. Install the dependencies:
@@ -41,15 +46,34 @@ To run the game, execute the following command in your terminal:
 go run main.go
 ```
 
+## Controls
+
+- **Arrow Keys**: Move your character
+- **Space**: Shoot projectiles
+- **B**: Toggle hitbox display
+
 ## Project Structure
 
-- `main.go`: The main entry point of the game.
-- `game/`: Contains game logic and entities implemented using Ebitengine.
-- `sprites/`: Directory containing sprite images used in the game.
+- `main.go`: The main entry point of the game
+- `internals/game/`: Contains game logic and rendering code
+- `internals/entities/`: Player, enemy, and projectile definitions
+- `internals/physics/`: Simple collision detection with hitboxes
+- `internals/events/`: Event handlers for game objects
+- `internals/inputs/`: Image and font loading utilities
+- `internals/config/`: Game constants like screen size and speeds
+- `assets/`: Game sprites and fonts
+
+## Planned Features
+
+- More enemy types and attack patterns
+- Power-ups and special abilities
+- Score system improvements
+- Sound effects and music
+- Menu system and game settings
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request if you have any improvements or bug fixes.
+Contributions are welcome! Feel free to open issues or submit pull requests with improvements or bug fixes.
 
 ## License
 
