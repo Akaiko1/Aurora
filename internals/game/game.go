@@ -7,6 +7,7 @@ import (
 	"scroller_game/internals/config"
 	"scroller_game/internals/entities"
 	"scroller_game/internals/inputs"
+	"scroller_game/internals/physics"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -36,6 +37,7 @@ type Game struct {
 	Scenarios      []*Scenario
 	FlagHitboxes   bool
 	Background     *Background
+	SpatialGrid    *physics.SpatialGrid
 }
 
 func init() {
@@ -66,6 +68,9 @@ func (g *Game) Update() error {
 		for _, enemy := range g.SpawnedEnemies {
 			g.enemyActions(enemy)
 		}
+
+		// Handle collisions using optimized spatial partitioning
+		g.UpdateCollisions()
 	case SwitchLevel:
 		if len(g.Scenarios) == 0 {
 			g.State = GameOver

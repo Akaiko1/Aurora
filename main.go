@@ -16,13 +16,16 @@ func NewGame() *game.Game {
 	player := &entities.Player{
 		X:           config.ScreenWidth / 2,
 		Y:           config.ScreenHeight / 2,
-		Width:       32,
-		Height:      32,
+		Width:       config.EntitySize,
+		Height:      config.EntitySize,
 		Speed:       config.PlayerSpeed,
 		Projectiles: []*entities.Projectile{},
-		Hitbox:      physics.Hitbox{Width: 10, Height: 10},
-		Grazebox:    physics.Hitbox{Width: 50, Height: 50},
+		Hitbox:      physics.Hitbox{Width: config.PlayerHitboxSize, Height: config.PlayerHitboxSize},
+		Grazebox:    physics.Hitbox{Width: config.PlayerGrazeboxSize, Height: config.PlayerGrazeboxSize},
 	}
+
+	// Initialize player weapons
+	player.InitializeWeapons()
 
 	player.Hitbox.CenterOn(player.X+player.Width/2, player.Y+player.Height/2)
 	player.Grazebox.CenterOn(player.X+player.Width/2, player.Y+player.Height/2)
@@ -37,6 +40,7 @@ func NewGame() *game.Game {
 		State:        game.SwitchLevel,
 		Scenarios:    game.GetGameScenarios(),
 		Background:   game.InitBackground(randomSource),
+		SpatialGrid:  physics.NewSpatialGrid(config.SpatialGridCellSize),
 	}
 }
 

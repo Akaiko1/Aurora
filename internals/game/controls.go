@@ -9,24 +9,16 @@ import (
 
 func (g *Game) playerEvents() {
 	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) && g.Player.X-g.Player.Speed > 0 {
-		g.Player.X -= g.Player.Speed
-		g.Player.Hitbox.X -= g.Player.Speed
-		g.Player.Grazebox.X -= g.Player.Speed
+		g.Player.Move(-g.Player.Speed, 0)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) && g.Player.X+g.Player.Width+g.Player.Speed < config.ScreenWidth {
-		g.Player.X += g.Player.Speed
-		g.Player.Hitbox.X += g.Player.Speed
-		g.Player.Grazebox.X += g.Player.Speed
+		g.Player.Move(g.Player.Speed, 0)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) && g.Player.Y-g.Player.Speed > 0 {
-		g.Player.Y -= g.Player.Speed
-		g.Player.Hitbox.Y -= g.Player.Speed
-		g.Player.Grazebox.Y -= g.Player.Speed
+		g.Player.Move(0, -g.Player.Speed)
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) && g.Player.Y+g.Player.Height+g.Player.Speed < config.ScreenHeight {
-		g.Player.Y += g.Player.Speed
-		g.Player.Hitbox.Y += g.Player.Speed
-		g.Player.Grazebox.Y += g.Player.Speed
+		g.Player.Move(0, g.Player.Speed)
 	}
 
 	// Toggle hitboxes with the B key
@@ -36,16 +28,31 @@ func (g *Game) playerEvents() {
 		}
 	}
 
+	// Weapon switching
+	if ebiten.IsKeyPressed(ebiten.Key1) {
+		g.Player.SwitchWeapon(0) // Normal
+	}
+	if ebiten.IsKeyPressed(ebiten.Key2) {
+		g.Player.SwitchWeapon(1) // Piercing
+	}
+	if ebiten.IsKeyPressed(ebiten.Key3) {
+		g.Player.SwitchWeapon(2) // Rapid Fire
+	}
+	if ebiten.IsKeyPressed(ebiten.Key4) {
+		g.Player.SwitchWeapon(3) // Heavy Cannon
+	}
+
 	// Player shooting
 	if ebiten.IsKeyPressed(ebiten.KeySpace) {
-		if g.FrameCount%5 == 0 {
+		if g.Player.CanFire(g.FrameCount) {
 			g.playerShoot()
 			g.Player.IsAttacking = true
 			g.Player.AttackStartFrame = g.FrameCount
+			g.Player.CurrentWeapon.Fire(g.FrameCount) // Mark weapon as fired
 		}
 	}
 
-	if g.Player.IsAttacking && (g.FrameCount-g.Player.AttackStartFrame+120)%120 >= 18 {
+	if g.Player.IsAttacking && (g.FrameCount-g.Player.AttackStartFrame+120)%120 >= config.AttackCooldownFrames {
 		g.Player.IsAttacking = false
 	}
 

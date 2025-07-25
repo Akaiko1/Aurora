@@ -50,6 +50,17 @@ func GetGameScenarios() []*Scenario {
 
 func mob() *entities.Enemy {
 	rands := rand.New(rand.NewSource(time.Now().UnixNano()))
-	return &entities.Enemy{X: float32(rands.Intn(config.ScreenWidth - 50)), Y: float32(rands.Intn(config.ScreenHeight - 50)),
-		Width: 32, Height: 32, SpeedX: 1, SpeedY: 1}
+	enemy := &entities.Enemy{
+		X:      float32(rands.Intn(config.ScreenWidth - config.EntitySize*2)),
+		Y:      float32(rands.Intn(config.ScreenHeight - config.EntitySize*2)),
+		Width:  config.EntitySize,
+		Height: config.EntitySize,
+		SpeedX: 1,
+		SpeedY: 1,
+	}
+
+	// Initialize enemy weapon
+	enemy.InitializeWeapon(entities.WeaponIDEnemy)
+
+	return enemy
 }

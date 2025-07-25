@@ -10,8 +10,13 @@ Aurora is a simple 2D shooter game built with Golang and the Ebitengine game lib
 
 - Basic top-down shooter mechanics
 - Player character with movement and shooting
+- **Extensible weapon system** with 4+ weapon types:
+  - Normal: 5 projectiles, disappear on hit, balanced stats
+  - Piercing: 2 projectiles, pierce through enemies, faster speed
+  - Rapid Fire: 8 projectiles, very fast firing, thinner bullets
+  - Heavy Cannon: 1 projectile, slow but powerful, large bullets
 - Simple enemy AI with random movement patterns
-- Projectile collision detection
+- Optimized collision detection with spatial partitioning
 - Grazing system for scoring points by narrowly avoiding enemy bullets
 - Simple level progression with phases and scenarios
 - Togglable hitbox display (press B)
@@ -51,6 +56,10 @@ go run main.go
 - **Arrow Keys**: Move your character
 - **Space**: Shoot projectiles
 - **B**: Toggle hitbox display
+- **1**: Normal weapon (5 projectiles, balanced)
+- **2**: Piercing weapon (2 projectiles, pierce enemies)
+- **3**: Rapid Fire weapon (8 projectiles, very fast)
+- **4**: Heavy Cannon weapon (1 projectile, slow but powerful)
 
 ## Project Structure
 

@@ -29,8 +29,17 @@ func (g *Game) DrawGameplay(screen *ebiten.Image) {
 	text.Draw(screen, fmt.Sprintf("You were hit: %d", g.Player.Hits), mplusNormalFace, text_op)
 	text_op.GeoM.Translate(65, 30)
 	text.Draw(screen, fmt.Sprintf("Score: %d", g.Player.Score), mplusNormalFace, text_op)
+
+	// Draw weapon info
+	text_op.GeoM.Translate(-65, 20)
+	weaponName := "Unknown"
+	if g.Player.CurrentWeapon != nil {
+		weaponName = g.Player.CurrentWeapon.Definition.Name
+	}
+	text.Draw(screen, fmt.Sprintf("Weapon: %s (%d/%d)", weaponName, len(g.Player.Projectiles), g.Player.GetMaxProjectiles()), mplusNormalFace, text_op)
+
 	if g.Player.Grazing != nil {
-		text_op.GeoM.Translate(0, 390)
+		text_op.GeoM.Translate(0, 350)
 		text.Draw(screen, "Graze!", mplusNormalFace, text_op)
 	}
 

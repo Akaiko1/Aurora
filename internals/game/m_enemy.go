@@ -35,38 +35,30 @@ func (g *Game) enemySpawn() {
 }
 
 func (g *Game) enemyActions(enemy *entities.Enemy) {
-	if g.FrameCount%90 == 0 {
+	if g.FrameCount%config.EnemyDirectionChangeInterval == 0 {
 		g.setRandomDirection(enemy)
 	}
 
-	enemy.X += enemy.SpeedX
-	enemy.Y += enemy.SpeedY
-	enemy.Hitbox.X += enemy.SpeedX
-	enemy.Hitbox.Y += enemy.SpeedY
+	enemy.Move(enemy.SpeedX, enemy.SpeedY)
 
-	if enemy.X < 0 || enemy.X+32 > config.ScreenWidth {
+	if enemy.X < 0 || enemy.X+config.EntitySize > config.ScreenWidth {
 		enemy.SpeedX = -enemy.SpeedX
 	}
-	if enemy.Y < 0 || enemy.Y+32 > config.ScreenHeight {
+	if enemy.Y < 0 || enemy.Y+config.EntitySize > config.ScreenHeight {
 		enemy.SpeedY = -enemy.SpeedY
 	}
 
 	// Enemy shooting logic
-	if g.FrameCount%config.EnemyShootInterval == 0 {
-		enemy.EnemyShoot(&g.Projectiles) // Pass the address of g.projectiles
+	if enemy.CanFire(g.FrameCount) {
+		enemy.EnemyShoot(&g.Projectiles, g.FrameCount) // Pass the address of g.projectiles and current frame
 		enemy.IsAttacking = true
 		enemy.AttackStartFrame = g.FrameCount
+		enemy.Weapon.Fire(g.FrameCount) // Mark weapon as fired
 	}
 
-	if enemy.IsAttacking && (g.FrameCount-enemy.AttackStartFrame+120)%120 >= 12 {
+	if enemy.IsAttacking && (g.FrameCount-enemy.AttackStartFrame+120)%120 >= config.AttackAnimationDuration {
 		enemy.IsAttacking = false
 	}
 
-	// Check for collisions with the enemy
-	for _, projectile := range g.Player.Projectiles {
-		if enemy.Hitbox.Intersects(&projectile.Hitbox) {
-			g.handleEnemyHit(enemy) // Handle the enemy hit
-			break
-		}
-	}
+	// Collision detection is now handled in the centralized collision system
 }
