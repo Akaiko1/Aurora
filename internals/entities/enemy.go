@@ -1,8 +1,46 @@
 package entities
 
 import (
+	"scroller_game/internals/config"
 	"scroller_game/internals/physics"
 )
+
+// EnemyType defines different types of enemies
+type EnemyType int
+
+const (
+	EnemyTypeSpider EnemyType = iota
+	EnemyTypeGoblin
+	EnemyTypeDragon
+	EnemyTypeSkeleton
+	// Add new enemy types here and they'll be automatically discovered!
+	EnemyTypeCount // This should always be last - used for iteration
+)
+
+// GetAllEnemyTypes returns all enemy types for automatic discovery
+func GetAllEnemyTypes() []EnemyType {
+	var types []EnemyType
+	for i := range EnemyTypeCount {
+		types = append(types, i)
+	}
+	return types
+}
+
+// GetEnemyTypeName returns the string name for an enemy type
+func GetEnemyTypeName(enemyType EnemyType) string {
+	switch enemyType {
+	case EnemyTypeSpider:
+		return "spider"
+	case EnemyTypeGoblin:
+		return "goblin"
+	case EnemyTypeDragon:
+		return "dragon"
+	case EnemyTypeSkeleton:
+		return "skeleton"
+	default:
+		return "spider" // Default fallback
+	}
+}
 
 type Enemy struct {
 	X, Y, Width, Height float32
@@ -11,6 +49,7 @@ type Enemy struct {
 	IsAttacking         bool
 	AttackStartFrame    int
 	Weapon              *Weapon // Enemy weapon
+	Type                EnemyType
 }
 
 // UpdatePosition updates the enemy's position and automatically syncs hitbox
@@ -60,4 +99,22 @@ func (enemy *Enemy) EnemyShoot(projectiles *[]*Projectile, currentFrame int) {
 	if projectile != nil {
 		*projectiles = append(*projectiles, projectile)
 	}
+}
+
+// NewEnemy creates a new enemy of the specified type with the given weapon
+func NewEnemy(x, y float32, enemyType EnemyType, weaponID WeaponID) *Enemy {
+	enemy := &Enemy{
+		X:      x,
+		Y:      y,
+		Width:  config.EntitySize, // Use constant instead of hard-coded 32
+		Height: config.EntitySize, // Use constant instead of hard-coded 32
+		SpeedX: config.EnemyBaseSpeedX,
+		SpeedY: config.EnemyBaseSpeedY,
+		Type:   enemyType,
+	}
+
+	// Initialize weapon with the provided weapon ID
+	enemy.InitializeWeapon(weaponID)
+
+	return enemy
 }

@@ -16,8 +16,8 @@ func (g *Game) handleEnemyHit(enemy *entities.Enemy) {
 func (g *Game) setRandomDirection(enemy *entities.Enemy) {
 	x_r := g.RandomSource.Float32()
 	y_r := g.RandomSource.Float32()
-	enemy.SpeedX = (x_r * 4) - 2 // Speed between -2 and 2
-	enemy.SpeedY = (y_r * 4) - 2 // Speed between -2 and 2
+	enemy.SpeedX = (x_r * config.EnemySpeedRange) - config.EnemyMaxSpeed // Speed between -2 and 2
+	enemy.SpeedY = (y_r * config.EnemySpeedRange) - config.EnemyMaxSpeed // Speed between -2 and 2
 }
 
 func (g *Game) enemySpawn() {
@@ -41,10 +41,10 @@ func (g *Game) enemyActions(enemy *entities.Enemy) {
 
 	enemy.Move(enemy.SpeedX, enemy.SpeedY)
 
-	if enemy.X < 0 || enemy.X+config.EntitySize > config.ScreenWidth {
+	if enemy.X < 0 || enemy.X+enemy.Width > config.ScreenWidth {
 		enemy.SpeedX = -enemy.SpeedX
 	}
-	if enemy.Y < 0 || enemy.Y+config.EntitySize > config.ScreenHeight {
+	if enemy.Y < 0 || enemy.Y+enemy.Height > config.ScreenHeight {
 		enemy.SpeedY = -enemy.SpeedY
 	}
 

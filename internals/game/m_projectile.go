@@ -1,10 +1,21 @@
 package game
 
-import "scroller_game/internals/config"
+import (
+	"scroller_game/internals/config"
+	"scroller_game/internals/entities"
+)
 
 func (g *Game) projectilesMovements() {
+	// Create trajectory handler for enemy projectiles
+	trajectoryHandler := &entities.TrajectoryHandler{
+		SpawnedEnemies: g.SpawnedEnemies, // For potential future enemy-enemy interactions
+		Player:         g.Player,         // For enemy projectiles to track player
+	}
+
+	// Update enemy projectiles using trajectory system
 	for _, projectile := range g.Projectiles {
-		projectile.Move(0, projectile.Speed*projectile.Direction)
+		dx, dy := trajectoryHandler.CalculateMovement(projectile, g.FrameCount)
+		projectile.Move(dx, dy)
 	}
 
 	activeProjectiles := g.Projectiles[:0]

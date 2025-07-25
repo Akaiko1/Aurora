@@ -8,8 +8,9 @@ func (g *Game) playerProjectilesMovements() {
 	// Create trajectory handler
 	trajectoryHandler := &entities.TrajectoryHandler{
 		SpawnedEnemies: g.SpawnedEnemies,
+		Player:         g.Player, // For consistency, though player projectiles don't track player
 	}
-	
+
 	// Update player projectiles using trajectory system
 	for _, projectile := range g.Player.Projectiles {
 		dx, dy := trajectoryHandler.CalculateMovement(projectile, g.FrameCount)
@@ -38,4 +39,3 @@ func (g *Game) playerShoot() {
 		g.Player.Projectiles = append(g.Player.Projectiles, projectile)
 	}
 }
-

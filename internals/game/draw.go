@@ -5,11 +5,50 @@ import (
 	"image"
 	"image/color"
 	"scroller_game/internals/config"
+	"scroller_game/internals/entities"
+	"scroller_game/internals/inputs"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
+
+// getSpriteFrame extracts a sprite frame with DRY principle
+func getSpriteFrame(sprite *ebiten.Image, isAttacking bool) *ebiten.Image {
+	var left, top int
+
+	if isAttacking {
+		left, top = config.SpriteAttackLeft, config.SpriteAttackTop
+	} else {
+		left, top = config.SpriteIdleLeft, config.SpriteIdleTop
+	}
+
+	return sprite.SubImage(image.Rect(
+		left, top,
+		left+config.SpriteFrameSize, top+config.SpriteFrameSize)).(*ebiten.Image)
+}
+
+// getPlayerSpriteFrame extracts a player sprite frame
+func getPlayerSpriteFrame(sprite *ebiten.Image, isAttacking bool) *ebiten.Image {
+	var left, top int
+
+	if isAttacking {
+		left, top = config.SpriteAttackLeft, config.SpriteAttackTop
+	} else {
+		left, top = config.SpriteIdleLeft, config.SpriteIdleTop
+	}
+
+	return sprite.SubImage(image.Rect(
+		left, top,
+		left+config.SpriteFrameSize, top+config.SpriteFrameSize)).(*ebiten.Image)
+}
+
+// createDrawOptions creates standard draw options with position translation
+func createDrawOptions(x, y float32) *ebiten.DrawImageOptions {
+	options := &ebiten.DrawImageOptions{}
+	options.GeoM.Translate(float64(x), float64(y))
+	return options
+}
 
 // uint32ToRGBA converts a uint32 color to color.RGBA
 func uint32ToRGBA(c uint32) color.RGBA {
@@ -23,7 +62,6 @@ func uint32ToRGBA(c uint32) color.RGBA {
 
 var (
 	mplusNormalFace *text.GoTextFace
-	frames          *ebiten.Image
 )
 
 func (g *Game) DrawGameplay(screen *ebiten.Image) {
@@ -53,27 +91,29 @@ func (g *Game) DrawGameplay(screen *ebiten.Image) {
 		text.Draw(screen, "Graze!", mplusNormalFace, text_op)
 	}
 
-	options := &ebiten.DrawImageOptions{}
-	options.GeoM.Translate(float64(g.Player.X), float64(g.Player.Y))
-	if g.Player.IsAttacking {
-		screen.DrawImage(frames.SubImage(image.Rect(32, 0, 64, 32)).(*ebiten.Image), options)
-	} else {
-		screen.DrawImage(frames.SubImage(image.Rect(0, 0, 32, 32)).(*ebiten.Image), options)
-	}
+	// Draw player using new sprite system with helper function
+	options := createDrawOptions(g.Player.X, g.Player.Y)
+
+	// Draw player using helper function
+	playerFrame := getPlayerSpriteFrame(inputs.PlayerSprite, g.Player.IsAttacking)
+	screen.DrawImage(playerFrame, options)
 
 	for _, projectile := range g.Player.Projectiles {
 		projectileColor := uint32ToRGBA(projectile.Color)
 		vector.DrawFilledRect(screen, projectile.X, projectile.Y, projectile.Width, projectile.Height, projectileColor, true)
 	}
 
+	// Draw enemies using new sprite system
 	for _, enemy := range g.SpawnedEnemies {
-		options := &ebiten.DrawImageOptions{}
-		options.GeoM.Translate(float64(enemy.X), float64(enemy.Y))
-		if !enemy.IsAttacking {
-			screen.DrawImage(frames.SubImage(image.Rect(0, 32, 32, 64)).(*ebiten.Image), options)
-		} else {
-			screen.DrawImage(frames.SubImage(image.Rect(32, 32, 64, 64)).(*ebiten.Image), options)
-		}
+		options := createDrawOptions(enemy.X, enemy.Y)
+
+		// Get sprite based on enemy type using the new hashmap system
+		enemyTypeName := entities.GetEnemyTypeName(enemy.Type)
+		enemySprite := inputs.GetEnemySprite(enemyTypeName)
+
+		// Draw enemy frame using helper function
+		enemyFrame := getSpriteFrame(enemySprite, enemy.IsAttacking)
+		screen.DrawImage(enemyFrame, options)
 	}
 
 	for _, projectile := range g.Projectiles {

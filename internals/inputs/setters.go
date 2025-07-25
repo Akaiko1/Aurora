@@ -25,7 +25,9 @@ func SetFontAndImages() (*text.GoTextFace, *ebiten.Image) {
 		Size:   24,
 	}
 
-	frames, _ := ReadImage("assets/sprites/animations.png")
+	// Load new sprites
+	LoadSprites()
 
-	return mplusNormalFace, frames
+	// Return nil for second parameter since we no longer use frames
+	return mplusNormalFace, nil
 }

@@ -13,6 +13,10 @@ const (
 	WeaponIDEnemy    WeaponID = "enemy_basic"
 	WeaponIDRapid    WeaponID = "rapid_fire"
 	WeaponIDHeavy    WeaponID = "heavy_cannon"
+
+	// Enemy-specific weapons
+	WeaponIDDragonSpiral    WeaponID = "dragon_spiral"
+	WeaponIDSkeletonPiercer WeaponID = "skeleton_piercer"
 	// Easy to add more: WeaponIDSpread, WeaponIDLaser, etc.
 )
 
@@ -139,6 +143,32 @@ var WeaponRegistry = map[WeaponID]*WeaponDefinition{
 		Color:            0xFF8000FF,                   // Orange
 		TrajectoryType:   TrajectoryTracking,           // Tracks enemies
 	},
+	WeaponIDDragonSpiral: {
+		ID:               WeaponIDDragonSpiral,
+		Name:             "Dragon Spiral",
+		MaxProjectiles:   8,
+		ProjectileType:   ProjectileNormal,
+		ProjectileSpeed:  config.ProjectileSpeed * 0.7,  // Slower than basic enemy
+		ProjectileWidth:  config.ProjectileWidth * 1.2,  // Slightly wider
+		ProjectileHeight: config.ProjectileHeight * 1.2, // Slightly taller
+		FireRate:         10,
+		Damage:           2,          // More damage than basic
+		Color:            0xFF4000FF, // Dark red/orange
+		TrajectoryType:   TrajectorySpiral,
+	},
+	WeaponIDSkeletonPiercer: {
+		ID:               WeaponIDSkeletonPiercer,
+		Name:             "Skeleton Piercer",
+		MaxProjectiles:   3,
+		ProjectileType:   ProjectilePiercing,            // Pierces through player!
+		ProjectileSpeed:  config.ProjectileSpeed * 0.9,  // Slightly faster than basic
+		ProjectileWidth:  config.ProjectileWidth * 0.8,  // Thinner for piercing
+		ProjectileHeight: config.ProjectileHeight * 1.8, // Much taller
+		FireRate:         35,                            // Slower fire rate (powerful shots)
+		Damage:           3,                             // High damage
+		Color:            0xFFFFFFFF,                    // White/bone color
+		TrajectoryType:   TrajectorySine,                // Sine wave makes it harder to dodge
+	},
 }
 
 // GetWeapon creates a new weapon instance from registry
@@ -160,15 +190,3 @@ func NewWeapon(def *WeaponDefinition) *Weapon {
 		LastFireTime: 0,
 	}
 }
-
-// Easy to add new weapons:
-// WeaponIDRapid: {
-//     ID: WeaponIDRapid,
-//     Name: "Rapid Fire",
-//     MaxProjectiles: 8,
-//     ProjectileType: ProjectileNormal,
-//     ProjectileSpeed: config.ProjectileSpeed * 0.9,
-//     FireRate: 2, // Very fast
-//     Damage: 1,
-//     Color: 0xFFFF00FF, // Yellow
-// },

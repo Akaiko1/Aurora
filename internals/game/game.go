@@ -41,7 +41,7 @@ type Game struct {
 }
 
 func init() {
-	mplusNormalFace, frames = inputs.SetFontAndImages()
+	mplusNormalFace, _ = inputs.SetFontAndImages()
 }
 
 func (g *Game) Update() error {
