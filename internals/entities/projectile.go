@@ -12,6 +12,7 @@ type Projectile struct {
 	SpawnFrame          int            // Frame when projectile was created (for time-based trajectories)
 	InitialX            float32        // Starting X position (for pattern calculations)
 	InitialY            float32        // Starting Y position (for pattern calculations)
+	Color               uint32         // Weapon color
 }
 
 // UpdatePosition updates the projectile's position and automatically syncs hitbox

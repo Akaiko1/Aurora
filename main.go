@@ -48,7 +48,7 @@ func main() {
 	game_loop := NewGame()
 
 	ebiten.SetWindowSize(config.ScreenWidth, config.ScreenHeight)
-	ebiten.SetWindowTitle("S-lav-o")
+	ebiten.SetWindowTitle("Aurora Scroller")
 	if err := ebiten.RunGame(game_loop); err != nil {
 		log.Fatal(err)
 	}

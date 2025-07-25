@@ -11,6 +11,16 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
+// uint32ToRGBA converts a uint32 color to color.RGBA
+func uint32ToRGBA(c uint32) color.RGBA {
+	return color.RGBA{
+		R: uint8((c >> 24) & 0xFF),
+		G: uint8((c >> 16) & 0xFF),
+		B: uint8((c >> 8) & 0xFF),
+		A: uint8(c & 0xFF),
+	}
+}
+
 var (
 	mplusNormalFace *text.GoTextFace
 	frames          *ebiten.Image
@@ -31,7 +41,7 @@ func (g *Game) DrawGameplay(screen *ebiten.Image) {
 	text.Draw(screen, fmt.Sprintf("Score: %d", g.Player.Score), mplusNormalFace, text_op)
 
 	// Draw weapon info
-	text_op.GeoM.Translate(-65, 20)
+	text_op.GeoM.Translate(-125, 25)
 	weaponName := "Unknown"
 	if g.Player.CurrentWeapon != nil {
 		weaponName = g.Player.CurrentWeapon.Definition.Name
@@ -52,7 +62,8 @@ func (g *Game) DrawGameplay(screen *ebiten.Image) {
 	}
 
 	for _, projectile := range g.Player.Projectiles {
-		vector.DrawFilledRect(screen, projectile.X, projectile.Y, 5, 10, color.RGBA{0, 255, 255, 255}, true)
+		projectileColor := uint32ToRGBA(projectile.Color)
+		vector.DrawFilledRect(screen, projectile.X, projectile.Y, projectile.Width, projectile.Height, projectileColor, true)
 	}
 
 	for _, enemy := range g.SpawnedEnemies {
@@ -66,7 +77,8 @@ func (g *Game) DrawGameplay(screen *ebiten.Image) {
 	}
 
 	for _, projectile := range g.Projectiles {
-		vector.DrawFilledRect(screen, projectile.X, projectile.Y, 5, 10, color.RGBA{255, 255, 0, 255}, true)
+		projectileColor := uint32ToRGBA(projectile.Color)
+		vector.DrawFilledRect(screen, projectile.X, projectile.Y, projectile.Width, projectile.Height, projectileColor, true)
 	}
 
 	if g.FlagHitboxes {

@@ -25,9 +25,9 @@ type WeaponDefinition struct {
 	ProjectileSpeed  float32
 	ProjectileWidth  float32
 	ProjectileHeight float32
-	FireRate         int           // Frames between shots (lower = faster)
-	Damage           int           // Future: damage system
-	Color            uint32        // Future: different colored projectiles
+	FireRate         int            // Frames between shots (lower = faster)
+	Damage           int            // Future: damage system
+	Color            uint32         // Future: different colored projectiles
 	TrajectoryType   TrajectoryType // Movement pattern
 }
 
@@ -61,6 +61,7 @@ func (w *Weapon) CreateProjectile(x, y float32, direction float32, currentFrame 
 		SpawnFrame:     currentFrame,
 		InitialX:       x,
 		InitialY:       y,
+		Color:          w.Definition.Color,
 	}
 	projectile.UpdatePosition(x, y) // Initialize hitbox
 	return projectile
@@ -75,7 +76,7 @@ func (w *Weapon) Fire(currentFrame int) {
 var WeaponRegistry = map[WeaponID]*WeaponDefinition{
 	WeaponIDNormal: {
 		ID:               WeaponIDNormal,
-		Name:             "Normal",
+		Name:             "Basic",
 		MaxProjectiles:   5,
 		ProjectileType:   ProjectileNormal,
 		ProjectileSpeed:  config.ProjectileSpeed,
@@ -96,7 +97,7 @@ var WeaponRegistry = map[WeaponID]*WeaponDefinition{
 		ProjectileHeight: config.ProjectileHeight * 1.5, // Taller projectiles
 		FireRate:         5,                             // Slower fire rate (was 8)
 		Damage:           2,
-		Color:            0xFF00FFFF, // Cyan
+		Color:            0xFF00FFFF,     // Cyan
 		TrajectoryType:   TrajectorySine, // Sine wave pattern
 	},
 	WeaponIDEnemy: {
@@ -114,7 +115,7 @@ var WeaponRegistry = map[WeaponID]*WeaponDefinition{
 	},
 	WeaponIDRapid: {
 		ID:               WeaponIDRapid,
-		Name:             "Rapid Fire",
+		Name:             "Rapid",
 		MaxProjectiles:   8,
 		ProjectileType:   ProjectileNormal,
 		ProjectileSpeed:  config.ProjectileSpeed * 0.9, // Slightly slower
@@ -127,9 +128,9 @@ var WeaponRegistry = map[WeaponID]*WeaponDefinition{
 	},
 	WeaponIDHeavy: {
 		ID:               WeaponIDHeavy,
-		Name:             "Heavy Cannon",
-		MaxProjectiles:   1, // Only one shot at a time
-		ProjectileType:   ProjectileNormal, // Back to normal, tracking handled by trajectory
+		Name:             "Heavy!",
+		MaxProjectiles:   1,                            // Only one shot at a time
+		ProjectileType:   ProjectileNormal,             // Back to normal, tracking handled by trajectory
 		ProjectileSpeed:  config.ProjectileSpeed * 0.6, // Slower projectiles
 		ProjectileWidth:  config.ProjectileWidth * 2,   // Much wider
 		ProjectileHeight: config.ProjectileHeight * 2,  // Much taller

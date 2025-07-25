@@ -55,8 +55,8 @@ func InitBackground(randomSource *rand.Rand) *Background {
 	// Create the background tiles
 	tiles := make([]BackgroundTile, 0, gridWidth*gridHeight)
 
-	for y := 0; y < gridHeight; y++ {
-		for x := 0; x < gridWidth; x++ {
+	for y := range gridHeight {
+		for x := range gridWidth {
 			// Randomly decide if a tile has grass (70% chance for grass)
 			hasGrass := randomSource.Float32() < 0.7
 

@@ -4,7 +4,7 @@
 
 Aurora is a simple 2D shooter game built with Golang and the Ebitengine game library. This project is currently in early development with basic gameplay features implemented.
 
-<img src="assets/preview.jpg" alt="Game Screenshot" width="480"/>
+<img src="assets/demo.gif" alt="Game Demo" width="480"/>
 
 ## Current Features
 
