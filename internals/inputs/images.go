@@ -13,6 +13,10 @@ var (
 	PlayerSprite *ebiten.Image
 	EnemySprites map[string]*ebiten.Image // Map enemy type names to their sprites
 	BgTiles      *ebiten.Image
+
+	// External functions to be set by main package for embedded loading
+	LoadEmbeddedImageFunc func(path string) (*ebiten.Image, error)
+	UseEmbeddedAssets     bool = false // Will be set by main package
 )
 
 func ReadImage(path string) (*ebiten.Image, error) {
@@ -29,6 +33,22 @@ func ReadImage(path string) (*ebiten.Image, error) {
 	return ebiten.NewImageFromImage(img), nil
 }
 
+// tryLoadImage tries embedded first, then fallback to file
+func tryLoadImage(path string) (*ebiten.Image, error) {
+	if UseEmbeddedAssets && LoadEmbeddedImageFunc != nil {
+		if img, err := LoadEmbeddedImageFunc(path); err == nil {
+			return img, nil
+		}
+		log.Printf("Embedded load failed for %s, trying file system", path)
+	}
+	return ReadImage(path)
+}
+
+// LoadImageWithEmbedSupport loads an image with embedded asset support - exported for use by other packages
+func LoadImageWithEmbedSupport(path string) (*ebiten.Image, error) {
+	return tryLoadImage(path)
+}
+
 // LoadSprites loads all game sprites
 func LoadSprites() {
 	var err error
@@ -37,7 +57,7 @@ func LoadSprites() {
 	EnemySprites = make(map[string]*ebiten.Image)
 
 	// Player sprite is REQUIRED - game stops if it can't load
-	PlayerSprite, err = ReadImage("assets/sprites/player.png")
+	PlayerSprite, err = tryLoadImage("assets/sprites/player.png")
 	if err != nil {
 		log.Fatalf("CRITICAL: Could not load required player.png: %v", err)
 	}
@@ -46,7 +66,7 @@ func LoadSprites() {
 	allEnemyTypes := entities.GetAllEnemyTypes()
 
 	// First, load spider sprite as the fallback (it's required)
-	spiderSprite, err := ReadImage("assets/sprites/spider.png")
+	spiderSprite, err := tryLoadImage("assets/sprites/spider.png")
 	if err != nil {
 		log.Fatalf("CRITICAL: Could not load required spider.png (fallback sprite): %v", err)
 	}
@@ -62,7 +82,7 @@ func LoadSprites() {
 		}
 
 		spritePath := "assets/sprites/" + enemyTypeName + ".png"
-		sprite, err := ReadImage(spritePath)
+		sprite, err := tryLoadImage(spritePath)
 		if err != nil {
 			log.Printf("Warning: Could not load %s, using spider sprite as fallback: %v", spritePath, err)
 			sprite = spiderSprite // Use spider sprite as fallback
@@ -70,7 +90,7 @@ func LoadSprites() {
 		EnemySprites[enemyTypeName] = sprite
 	}
 
-	BgTiles, err = ReadImage("assets/sprites/bg_tiles.png")
+	BgTiles, err = tryLoadImage("assets/sprites/bg_tiles.png")
 	if err != nil {
 		log.Printf("Warning: Could not load bg_tiles.png: %v", err)
 	}

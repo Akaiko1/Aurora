@@ -40,7 +40,8 @@ type Game struct {
 	SpatialGrid    *physics.SpatialGrid
 }
 
-func init() {
+// InitializeAssets initializes fonts and images - called from main after embedded setup
+func InitializeAssets() {
 	mplusNormalFace, _ = inputs.SetFontAndImages()
 }
 

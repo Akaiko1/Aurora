@@ -6,6 +6,7 @@ import (
 	"scroller_game/internals/config"
 	"scroller_game/internals/entities"
 	"scroller_game/internals/game"
+	"scroller_game/internals/inputs"
 	"scroller_game/internals/physics"
 	"time"
 
@@ -45,6 +46,14 @@ func NewGame() *game.Game {
 }
 
 func main() {
+	// Set up embedded asset loading
+	inputs.LoadEmbeddedImageFunc = LoadEmbeddedImage
+	inputs.LoadEmbeddedFontFunc = LoadEmbeddedFont
+	inputs.UseEmbeddedAssets = true // Change to false for development with file system
+
+	// Initialize assets after setting embedded flags
+	game.InitializeAssets()
+
 	game_loop := NewGame()
 
 	ebiten.SetWindowSize(config.ScreenWidth, config.ScreenHeight)

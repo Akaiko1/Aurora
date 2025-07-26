@@ -32,7 +32,7 @@ type Background struct {
 
 func InitBackground(randomSource *rand.Rand) *Background {
 	// Load the single spritesheet containing both textures
-	spritesheet, err := inputs.ReadImage("assets/sprites/bg_tiles.png")
+	spritesheet, err := inputs.LoadImageWithEmbedSupport("assets/sprites/bg_tiles.png")
 	if err != nil {
 		// Fallback: Create simple textures if image can't be loaded
 		bgGrass = ebiten.NewImage(bgTileSize, bgTileSize)
