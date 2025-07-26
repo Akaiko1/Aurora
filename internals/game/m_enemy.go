@@ -60,5 +60,4 @@ func (g *Game) enemyActions(enemy *entities.Enemy) {
 		enemy.IsAttacking = false
 	}
 
-	// Collision detection is now handled in the centralized collision system
 }

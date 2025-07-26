@@ -61,14 +61,13 @@ func (g *Game) Update() error {
 		// Spawn a new enemy
 		g.enemySpawn()
 
-		// Update projectiles
-		g.projectilesMovements()
-		g.playerProjectilesMovements()
-
 		// Update enemies
 		for _, enemy := range g.SpawnedEnemies {
 			g.enemyActions(enemy)
 		}
+
+		// Update all projectiles
+		g.updateProjectiles()
 
 		// Handle collisions using optimized spatial partitioning
 		g.UpdateCollisions()

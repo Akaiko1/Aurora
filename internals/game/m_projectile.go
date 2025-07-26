@@ -5,25 +5,40 @@ import (
 	"scroller_game/internals/entities"
 )
 
-func (g *Game) projectilesMovements() {
-	// Create trajectory handler for enemy projectiles
+func (g *Game) updateProjectiles() {
+	// Create trajectory handler once for all projectiles
 	trajectoryHandler := &entities.TrajectoryHandler{
-		SpawnedEnemies: g.SpawnedEnemies, // For potential future enemy-enemy interactions
-		Player:         g.Player,         // For enemy projectiles to track player
+		SpawnedEnemies: g.SpawnedEnemies,
+		Player:         g.Player,
 	}
 
-	// Update enemy projectiles using trajectory system
+	// Update all enemy projectiles
 	for _, projectile := range g.Projectiles {
 		dx, dy := trajectoryHandler.CalculateMovement(projectile, g.FrameCount)
 		projectile.Move(dx, dy)
 	}
 
-	activeProjectiles := g.Projectiles[:0]
+	// Update all player projectiles
+	for _, projectile := range g.Player.Projectiles {
+		dx, dy := trajectoryHandler.CalculateMovement(projectile, g.FrameCount)
+		projectile.Move(dx, dy)
+	}
+
+	// Remove off-screen enemy projectiles (move down, positive Y)
+	activeEnemyProjectiles := g.Projectiles[:0]
 	for _, projectile := range g.Projectiles {
-		// Enemy projectiles move down (positive Y), remove when Y > screen height
 		if projectile.Y < config.ScreenHeight+projectile.Height {
-			activeProjectiles = append(activeProjectiles, projectile)
+			activeEnemyProjectiles = append(activeEnemyProjectiles, projectile)
 		}
 	}
-	g.Projectiles = activeProjectiles
+	g.Projectiles = activeEnemyProjectiles
+
+	// Remove off-screen player projectiles (move up, negative Y)
+	activePlayerProjectiles := g.Player.Projectiles[:0]
+	for _, projectile := range g.Player.Projectiles {
+		if projectile.Y > -projectile.Height {
+			activePlayerProjectiles = append(activePlayerProjectiles, projectile)
+		}
+	}
+	g.Player.Projectiles = activePlayerProjectiles
 }

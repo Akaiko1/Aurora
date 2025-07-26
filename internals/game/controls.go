@@ -52,6 +52,12 @@ func (g *Game) playerEvents() {
 		}
 	}
 
+	// Reset attack state after cooldown period
+	// Formula: (CurrentFrame - StartFrame + 120) % 120 >= CooldownFrames
+	// The +120 handles frame counter wrapping (0-119), ensuring proper time calculation
+	// Examples:
+	//   - Attack at frame 110, current 5: (5-110+120)%120 = 15 frames elapsed
+	//   - Attack at frame 50, current 60: (60-50+120)%120 = 10 frames elapsed
 	if g.Player.IsAttacking && (g.FrameCount-g.Player.AttackStartFrame+120)%120 >= config.AttackCooldownFrames {
 		g.Player.IsAttacking = false
 	}
