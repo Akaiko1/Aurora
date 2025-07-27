@@ -67,9 +67,18 @@ var (
 func (g *Game) DrawGameplay(screen *ebiten.Image) {
 	// Draw Phase and Scenario
 	g.TextOptions.GeoM.Reset()
-	text.Draw(screen, g.Scenario.Name, mplusNormalFace, g.TextOptions)
+	scenarioName := "Loading..."
+	if g.Scenario != nil {
+		scenarioName = g.Scenario.Name
+	}
+	text.Draw(screen, scenarioName, mplusNormalFace, g.TextOptions)
+	
 	g.TextOptions.GeoM.Translate(0, 20)
-	text.Draw(screen, g.Phase.Name, mplusNormalFace, g.TextOptions)
+	phaseName := "Loading..."
+	if g.Phase != nil {
+		phaseName = g.Phase.Name
+	}
+	text.Draw(screen, phaseName, mplusNormalFace, g.TextOptions)
 
 	// Draw game info
 	g.TextOptions.GeoM.Reset()
