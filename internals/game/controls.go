@@ -1,10 +1,12 @@
 package game
 
 import (
+	"os"
 	"scroller_game/internals/config"
 	"scroller_game/internals/events"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 func (g *Game) playerEvents() {
@@ -80,5 +82,28 @@ func (g *Game) playerEvents() {
 			g.Player.Score++
 		}
 
+	}
+}
+
+// gameOverMenuEvents handles input for the game over menu navigation.
+// Uses inpututil.IsKeyJustPressed() for proper single-press menu navigation
+// following Ebitengine best practices for UI interaction.
+func (g *Game) gameOverMenuEvents() {
+	// Menu navigation using UP/DOWN arrows
+	if inpututil.IsKeyJustPressed(ebiten.KeyArrowUp) {
+		g.GameOverSelection = 0 // Select "Play Again"
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyArrowDown) {
+		g.GameOverSelection = 1 // Select "Exit"
+	}
+
+	// Confirm selection with ENTER key
+	if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+		switch g.GameOverSelection {
+		case 0: // Play Again
+			g.restartGame()
+		case 1: // Exit
+			os.Exit(0)
+		}
 	}
 }

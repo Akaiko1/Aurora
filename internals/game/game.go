@@ -25,19 +25,20 @@ const (
 type GameState int
 
 type Game struct {
-	Player         *entities.Player
-	Projectiles    []*entities.Projectile
-	FrameCount     int
-	Enemies        []*entities.Enemy
-	SpawnedEnemies []*entities.Enemy
-	State          GameState
-	Scenario       *Scenario
-	Phase          *Phase
-	RandomSource   *rand.Rand
-	Scenarios      []*Scenario
-	FlagHitboxes   bool
-	Background     *Background
-	SpatialGrid    *physics.SpatialGrid
+	Player            *entities.Player
+	Projectiles       []*entities.Projectile
+	FrameCount        int
+	Enemies           []*entities.Enemy
+	SpawnedEnemies    []*entities.Enemy
+	State             GameState
+	Scenario          *Scenario
+	Phase             *Phase
+	RandomSource      *rand.Rand
+	Scenarios         []*Scenario
+	FlagHitboxes      bool
+	Background        *Background
+	SpatialGrid       *physics.SpatialGrid
+	GameOverSelection int // 0 = Again, 1 = Exit
 }
 
 // InitializeAssets initializes fonts and images - called from main after embedded setup
@@ -104,6 +105,9 @@ func (g *Game) Update() error {
 		g.Scenario.Phases = g.Scenario.Phases[1:]
 		g.Enemies = g.Phase.Enemies
 		g.State = Playing
+	case GameOver:
+		// Handle game over menu navigation
+		g.gameOverMenuEvents()
 	}
 
 	return nil
@@ -122,14 +126,76 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	case Playing:
 		g.DrawGameplay(screen)
 	case GameOver:
-		text_op := &text.DrawOptions{}
-		text_op.GeoM.Translate(config.ScreenWidth/2-100, config.ScreenHeight/2-50)
-		text.Draw(screen, "Game Over", mplusNormalFace, text_op)
-		text_op.GeoM.Translate(0, 50)
-		text.Draw(screen, fmt.Sprintf("Score: %d", g.Player.Score), mplusNormalFace, text_op)
+		g.drawGameOverMenu(screen)
 	case Paused:
 		text.Draw(screen, "Paused", mplusNormalFace, &text.DrawOptions{})
 	}
+}
+
+// drawGameOverMenu renders the game over screen with interactive menu options.
+// It displays the final score and provides selectable options to restart or exit.
+// Uses proper visual indicators to show the currently selected option.
+func (g *Game) drawGameOverMenu(screen *ebiten.Image) {
+	// Game Over title
+	text_op := &text.DrawOptions{}
+	text_op.GeoM.Translate(config.ScreenWidth/2-60, config.ScreenHeight/2-120)
+	text.Draw(screen, "Game Over", mplusNormalFace, text_op)
+
+	// Final score
+	text_op.GeoM.Reset()
+	text_op.GeoM.Translate(config.ScreenWidth/2-60, config.ScreenHeight/2-80)
+	text.Draw(screen, fmt.Sprintf("Score: %d", g.Player.Score), mplusNormalFace, text_op)
+
+	// Menu options with selection indicator
+	againText := "Play Again"
+	exitText := "Exit"
+
+	if g.GameOverSelection == 0 {
+		againText = "> " + againText + " <"
+	} else {
+		exitText = "> " + exitText + " <"
+	}
+
+	text_op.GeoM.Reset()
+	text_op.GeoM.Translate(config.ScreenWidth/2-60, config.ScreenHeight/2-20)
+	text.Draw(screen, againText, mplusNormalFace, text_op)
+
+	text_op.GeoM.Reset()
+	text_op.GeoM.Translate(config.ScreenWidth/2-60, config.ScreenHeight/2+20)
+	text.Draw(screen, exitText, mplusNormalFace, text_op)
+}
+
+// restartGame resets the game to its initial state for a new playthrough.
+// It reinitializes the player, clears all projectiles and enemies, and
+// resets the game progression back to the first scenario.
+func (g *Game) restartGame() {
+	// Reset player state
+	g.Player.X = config.ScreenWidth / 2
+	g.Player.Y = config.ScreenHeight / 2
+	g.Player.Score = 0
+	g.Player.Hits = 0
+	g.Player.Projectiles = []*entities.Projectile{}
+	g.Player.IsAttacking = false
+	g.Player.Grazing = nil
+	g.Player.InitializeWeapons()
+	g.Player.Hitbox.CenterOn(g.Player.X+g.Player.Width/2, g.Player.Y+g.Player.Height/2)
+	g.Player.Grazebox.CenterOn(g.Player.X+g.Player.Width/2, g.Player.Y+g.Player.Height/2)
+
+	// Clear all projectiles and enemies
+	g.Projectiles = []*entities.Projectile{}
+	g.Enemies = []*entities.Enemy{}
+	g.SpawnedEnemies = []*entities.Enemy{}
+
+	// Reset game state
+	g.FrameCount = 0
+	g.State = SwitchLevel
+	g.Scenarios = GetGameScenarios()
+	g.Scenario = nil
+	g.Phase = nil
+	g.GameOverSelection = 0
+
+	// Reset spatial grid
+	g.SpatialGrid = physics.NewSpatialGrid(config.SpatialGridCellSize)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {

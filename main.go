@@ -33,15 +33,16 @@ func NewGame() *game.Game {
 	randomSource := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	return &game.Game{
-		Player:       player,
-		Projectiles:  []*entities.Projectile{},
-		Enemies:      []*entities.Enemy{},
-		RandomSource: randomSource,
-		FlagHitboxes: false,
-		State:        game.SwitchLevel,
-		Scenarios:    game.GetGameScenarios(),
-		Background:   game.InitBackground(randomSource),
-		SpatialGrid:  physics.NewSpatialGrid(config.SpatialGridCellSize),
+		Player:            player,
+		Projectiles:       []*entities.Projectile{},
+		Enemies:           []*entities.Enemy{},
+		RandomSource:      randomSource,
+		FlagHitboxes:      false,
+		State:             game.SwitchLevel,
+		Scenarios:         game.GetGameScenarios(),
+		Background:        game.InitBackground(randomSource),
+		SpatialGrid:       physics.NewSpatialGrid(config.SpatialGridCellSize),
+		GameOverSelection: 0,
 	}
 }
 

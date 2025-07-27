@@ -1,3 +1,4 @@
+// Package game contains the core game logic and entity management for Aurora.
 package game
 
 import (
@@ -7,19 +8,28 @@ import (
 	"scroller_game/internals/physics"
 )
 
+// handleEnemyHit processes when an enemy is defeated by the player.
+// It removes the enemy from the spawned enemies list and awards the player a point.
+// The enemy parameter must be a valid pointer to an enemy in the spawned enemies list.
 func (g *Game) handleEnemyHit(enemy *entities.Enemy) {
-	// Remove the enemy from the list
 	g.SpawnedEnemies, _ = events.DeleteEnemy(g.SpawnedEnemies, enemy)
 	g.Player.Score++
 }
 
+// setRandomDirection assigns random movement velocities to an enemy.
+// The enemy will receive speed values between -EnemyMaxSpeed and +EnemyMaxSpeed
+// for both X and Y axes, creating unpredictable movement patterns.
 func (g *Game) setRandomDirection(enemy *entities.Enemy) {
 	x_r := g.RandomSource.Float32()
 	y_r := g.RandomSource.Float32()
-	enemy.SpeedX = (x_r * config.EnemySpeedRange) - config.EnemyMaxSpeed // Speed between -2 and 2
-	enemy.SpeedY = (y_r * config.EnemySpeedRange) - config.EnemyMaxSpeed // Speed between -2 and 2
+	enemy.SpeedX = (x_r * config.EnemySpeedRange) - config.EnemyMaxSpeed
+	enemy.SpeedY = (y_r * config.EnemySpeedRange) - config.EnemyMaxSpeed
 }
 
+// enemySpawn manages the spawning of enemies from the waiting queue.
+// It limits spawned enemies to prevent overwhelming the player and ensures
+// there are enemies available to spawn. The first enemy in the queue is
+// spawned with a hitbox and random movement direction.
 func (g *Game) enemySpawn() {
 	if len(g.SpawnedEnemies) > 1 || len(g.Enemies) == 0 {
 		return
@@ -30,17 +40,22 @@ func (g *Game) enemySpawn() {
 	g.setRandomDirection(enemy)
 	g.SpawnedEnemies = append(g.SpawnedEnemies, enemy)
 
-	// Remove the enemy from the list
 	g.Enemies = g.Enemies[1:]
 }
 
+// enemyActions handles all behavior for an active enemy during each frame.
+// This includes periodic direction changes, movement updates, screen boundary
+// collision detection with direction reversal, shooting logic with attack
+// animations, and attack state management based on frame timing.
 func (g *Game) enemyActions(enemy *entities.Enemy) {
+	// Change direction periodically for unpredictable movement
 	if g.FrameCount%config.EnemyDirectionChangeInterval == 0 {
 		g.setRandomDirection(enemy)
 	}
 
 	enemy.Move(enemy.SpeedX, enemy.SpeedY)
 
+	// Bounce off screen edges
 	if enemy.X < 0 || enemy.X+enemy.Width > config.ScreenWidth {
 		enemy.SpeedX = -enemy.SpeedX
 	}
@@ -48,16 +63,16 @@ func (g *Game) enemyActions(enemy *entities.Enemy) {
 		enemy.SpeedY = -enemy.SpeedY
 	}
 
-	// Enemy shooting logic
+	// Handle enemy weapon firing and attack animations
 	if enemy.CanFire(g.FrameCount) {
-		enemy.EnemyShoot(&g.Projectiles, g.FrameCount) // Pass the address of g.projectiles and current frame
+		enemy.EnemyShoot(&g.Projectiles, g.FrameCount)
 		enemy.IsAttacking = true
 		enemy.AttackStartFrame = g.FrameCount
-		enemy.Weapon.Fire(g.FrameCount) // Mark weapon as fired
+		enemy.Weapon.Fire(g.FrameCount)
 	}
 
+	// End attack animation after the configured duration
 	if enemy.IsAttacking && (g.FrameCount-enemy.AttackStartFrame+120)%120 >= config.AttackAnimationDuration {
 		enemy.IsAttacking = false
 	}
-
 }
