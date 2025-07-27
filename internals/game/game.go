@@ -127,6 +127,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	switch g.State {
 	case Playing:
 		g.DrawGameplay(screen)
+	case SwitchLevel, SwitchPhase:
+		// Continue drawing gameplay during transitions to avoid screen flicker
+		g.DrawGameplay(screen)
 	case GameOver:
 		g.drawGameOverMenu(screen)
 	case Paused:
