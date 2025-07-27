@@ -52,10 +52,11 @@ func (g *Game) UpdateCollisions() {
 		}
 	}
 
-	// Remove hit enemies
+	// Process hit enemies and remove them
 	for _, enemy := range enemiesToRemove {
 		g.handleEnemyHit(enemy)
 	}
+	g.removeDefeatedEnemies(enemiesToRemove)
 
 	// Remove projectiles that hit enemies (only normal projectiles, in reverse order to maintain indices)
 	for i := len(projectileIndicesToRemove) - 1; i >= 0; i-- {

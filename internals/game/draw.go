@@ -65,30 +65,30 @@ var (
 )
 
 func (g *Game) DrawGameplay(screen *ebiten.Image) {
-	//Draw Phase and Scenario
-	level_info_op := &text.DrawOptions{}
-	text.Draw(screen, g.Scenario.Name, mplusNormalFace, level_info_op)
-	level_info_op.GeoM.Translate(0, 20)
-	text.Draw(screen, g.Phase.Name, mplusNormalFace, level_info_op)
+	// Draw Phase and Scenario
+	g.TextOptions.GeoM.Reset()
+	text.Draw(screen, g.Scenario.Name, mplusNormalFace, g.TextOptions)
+	g.TextOptions.GeoM.Translate(0, 20)
+	text.Draw(screen, g.Phase.Name, mplusNormalFace, g.TextOptions)
 
 	// Draw game info
-	text_op := &text.DrawOptions{}
-	text_op.GeoM.Translate(config.ScreenWidth-150, 20)
-	text.Draw(screen, fmt.Sprintf("You were hit: %d", g.Player.Hits), mplusNormalFace, text_op)
-	text_op.GeoM.Translate(65, 30)
-	text.Draw(screen, fmt.Sprintf("Score: %d", g.Player.Score), mplusNormalFace, text_op)
+	g.TextOptions.GeoM.Reset()
+	g.TextOptions.GeoM.Translate(config.ScreenWidth-150, 20)
+	text.Draw(screen, fmt.Sprintf("You were hit: %d", g.Player.Hits), mplusNormalFace, g.TextOptions)
+	g.TextOptions.GeoM.Translate(65, 30)
+	text.Draw(screen, fmt.Sprintf("Score: %d", g.Player.Score), mplusNormalFace, g.TextOptions)
 
 	// Draw weapon info
-	text_op.GeoM.Translate(-125, 25)
+	g.TextOptions.GeoM.Translate(-125, 25)
 	weaponName := "Unknown"
 	if g.Player.CurrentWeapon != nil {
 		weaponName = g.Player.CurrentWeapon.Definition.Name
 	}
-	text.Draw(screen, fmt.Sprintf("Weapon: %s (%d/%d)", weaponName, len(g.Player.Projectiles), g.Player.GetMaxProjectiles()), mplusNormalFace, text_op)
+	text.Draw(screen, fmt.Sprintf("Weapon: %s (%d/%d)", weaponName, len(g.Player.Projectiles), g.Player.GetMaxProjectiles()), mplusNormalFace, g.TextOptions)
 
 	if g.Player.Grazing != nil {
-		text_op.GeoM.Translate(0, 350)
-		text.Draw(screen, "Graze!", mplusNormalFace, text_op)
+		g.TextOptions.GeoM.Translate(0, 350)
+		text.Draw(screen, "Graze!", mplusNormalFace, g.TextOptions)
 	}
 
 	// Draw player using new sprite system with helper function

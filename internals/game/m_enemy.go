@@ -4,16 +4,35 @@ package game
 import (
 	"scroller_game/internals/config"
 	"scroller_game/internals/entities"
-	"scroller_game/internals/events"
 	"scroller_game/internals/physics"
 )
 
 // handleEnemyHit processes when an enemy is defeated by the player.
-// It removes the enemy from the spawned enemies list and awards the player a point.
-// The enemy parameter must be a valid pointer to an enemy in the spawned enemies list.
+// It awards the player a point for the defeated enemy.
 func (g *Game) handleEnemyHit(enemy *entities.Enemy) {
-	g.SpawnedEnemies, _ = events.DeleteEnemy(g.SpawnedEnemies, enemy)
 	g.Player.Score++
+}
+
+// removeDefeatedEnemies removes multiple enemies from the spawned enemies list.
+func (g *Game) removeDefeatedEnemies(enemiesToRemove []*entities.Enemy) {
+	if len(enemiesToRemove) == 0 {
+		return
+	}
+	
+	// Create a lookup map of enemies to remove
+	removeMap := make(map[*entities.Enemy]bool, len(enemiesToRemove))
+	for _, enemy := range enemiesToRemove {
+		removeMap[enemy] = true
+	}
+	
+	// Filter out enemies that should be removed
+	activeEnemies := g.SpawnedEnemies[:0]
+	for _, enemy := range g.SpawnedEnemies {
+		if !removeMap[enemy] {
+			activeEnemies = append(activeEnemies, enemy)
+		}
+	}
+	g.SpawnedEnemies = activeEnemies
 }
 
 // setRandomDirection assigns random movement velocities to an enemy.

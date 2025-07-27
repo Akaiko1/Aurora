@@ -8,24 +8,21 @@ import (
 
 // updateProjectiles handles movement and cleanup for all active projectiles.
 // This function processes both enemy and player projectiles by calculating
-// their trajectory-based movement and removing projectiles that have moved
-// off-screen to prevent memory leaks and maintain performance.
+// their trajectory-based movement and removing projectiles that have moved off-screen.
 func (g *Game) updateProjectiles() {
-	// Create trajectory handler once for all projectiles to avoid repeated allocation
-	trajectoryHandler := &entities.TrajectoryHandler{
-		SpawnedEnemies: g.SpawnedEnemies,
-		Player:         g.Player,
-	}
+	// Update trajectory handler references
+	g.TrajectoryHandler.SpawnedEnemies = g.SpawnedEnemies
+	g.TrajectoryHandler.Player = g.Player
 
 	// Update all enemy projectiles using their assigned trajectory patterns
 	for _, projectile := range g.Projectiles {
-		dx, dy := trajectoryHandler.CalculateMovement(projectile, g.FrameCount)
+		dx, dy := g.TrajectoryHandler.CalculateMovement(projectile, g.FrameCount)
 		projectile.Move(dx, dy)
 	}
 
 	// Update all player projectiles using their assigned trajectory patterns
 	for _, projectile := range g.Player.Projectiles {
-		dx, dy := trajectoryHandler.CalculateMovement(projectile, g.FrameCount)
+		dx, dy := g.TrajectoryHandler.CalculateMovement(projectile, g.FrameCount)
 		projectile.Move(dx, dy)
 	}
 
@@ -45,7 +42,6 @@ func (g *Game) isProjectileOnScreen(projectile *entities.Projectile) bool {
 }
 
 // removeOffScreenProjectiles filters out projectiles that have moved beyond screen boundaries.
-// This function works for both enemy and player projectiles, making the cleanup logic DRY.
 func (g *Game) removeOffScreenProjectiles(projectiles []*entities.Projectile) []*entities.Projectile {
 	activeProjectiles := projectiles[:0]
 	for _, projectile := range projectiles {

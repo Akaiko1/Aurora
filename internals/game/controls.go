@@ -3,7 +3,6 @@ package game
 import (
 	"os"
 	"scroller_game/internals/config"
-	"scroller_game/internals/events"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -24,23 +23,21 @@ func (g *Game) playerEvents() {
 	}
 
 	// Toggle hitboxes with the B key
-	if ebiten.IsKeyPressed(ebiten.KeyB) {
-		if g.FrameCount%6 == 0 {
-			g.FlagHitboxes = !g.FlagHitboxes
-		}
+	if inpututil.IsKeyJustPressed(ebiten.KeyB) {
+		g.FlagHitboxes = !g.FlagHitboxes
 	}
 
 	// Weapon switching
-	if ebiten.IsKeyPressed(ebiten.Key1) {
+	if inpututil.IsKeyJustPressed(ebiten.Key1) {
 		g.Player.SwitchWeapon(0) // Normal
 	}
-	if ebiten.IsKeyPressed(ebiten.Key2) {
+	if inpututil.IsKeyJustPressed(ebiten.Key2) {
 		g.Player.SwitchWeapon(1) // Piercing
 	}
-	if ebiten.IsKeyPressed(ebiten.Key3) {
+	if inpututil.IsKeyJustPressed(ebiten.Key3) {
 		g.Player.SwitchWeapon(2) // Rapid Fire
 	}
-	if ebiten.IsKeyPressed(ebiten.Key4) {
+	if inpututil.IsKeyJustPressed(ebiten.Key4) {
 		g.Player.SwitchWeapon(3) // Heavy Cannon
 	}
 
@@ -64,30 +61,33 @@ func (g *Game) playerEvents() {
 		g.Player.IsAttacking = false
 	}
 
-	// Playes projectiles interaction
-	for idx, projectile := range g.Projectiles {
+	// Player projectile interaction
+	activeProjectiles := g.Projectiles[:0]
+	for _, projectile := range g.Projectiles {
+		hit := false
+		
 		if g.Player.Hitbox.Intersects(&projectile.Hitbox) {
 			g.handlePlayerHit()
-			g.Projectiles = events.DeleteProjectile(g.Projectiles, idx)
-			break
-		}
-
-		if g.Player.Grazebox.Intersects(&projectile.Hitbox) && g.Player.Grazing != projectile {
+			hit = true
+		} else if g.Player.Grazebox.Intersects(&projectile.Hitbox) && g.Player.Grazing != projectile {
 			g.Player.Grazing = projectile
-			break
 		}
 
-		if g.Player.Grazing != nil && !g.Player.Grazebox.Intersects(&g.Player.Grazing.Hitbox) {
-			g.Player.Grazing = nil
-			g.Player.Score++
+		// Keep projectile if not hit
+		if !hit {
+			activeProjectiles = append(activeProjectiles, projectile)
 		}
+	}
+	g.Projectiles = activeProjectiles
 
+	// Handle graze ending
+	if g.Player.Grazing != nil && !g.Player.Grazebox.Intersects(&g.Player.Grazing.Hitbox) {
+		g.Player.Grazing = nil
+		g.Player.Score++
 	}
 }
 
 // gameOverMenuEvents handles input for the game over menu navigation.
-// Uses inpututil.IsKeyJustPressed() for proper single-press menu navigation
-// following Ebitengine best practices for UI interaction.
 func (g *Game) gameOverMenuEvents() {
 	// Menu navigation using UP/DOWN arrows
 	if inpututil.IsKeyJustPressed(ebiten.KeyArrowUp) {

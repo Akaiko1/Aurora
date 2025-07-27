@@ -38,7 +38,9 @@ type Game struct {
 	FlagHitboxes      bool
 	Background        *Background
 	SpatialGrid       *physics.SpatialGrid
-	GameOverSelection int // 0 = Again, 1 = Exit
+	GameOverSelection int                         // 0 = Again, 1 = Exit
+	TrajectoryHandler *entities.TrajectoryHandler
+	TextOptions       *text.DrawOptions
 }
 
 // InitializeAssets initializes fonts and images - called from main after embedded setup
@@ -128,7 +130,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	case GameOver:
 		g.drawGameOverMenu(screen)
 	case Paused:
-		text.Draw(screen, "Paused", mplusNormalFace, &text.DrawOptions{})
+		g.TextOptions.GeoM.Reset()
+		g.TextOptions.GeoM.Translate(config.ScreenWidth/2-40, config.ScreenHeight/2)
+		text.Draw(screen, "Paused", mplusNormalFace, g.TextOptions)
 	}
 }
 
@@ -137,14 +141,14 @@ func (g *Game) Draw(screen *ebiten.Image) {
 // Uses proper visual indicators to show the currently selected option.
 func (g *Game) drawGameOverMenu(screen *ebiten.Image) {
 	// Game Over title
-	text_op := &text.DrawOptions{}
-	text_op.GeoM.Translate(config.ScreenWidth/2-60, config.ScreenHeight/2-120)
-	text.Draw(screen, "Game Over", mplusNormalFace, text_op)
+	g.TextOptions.GeoM.Reset()
+	g.TextOptions.GeoM.Translate(config.ScreenWidth/2-60, config.ScreenHeight/2-120)
+	text.Draw(screen, "Game Over", mplusNormalFace, g.TextOptions)
 
 	// Final score
-	text_op.GeoM.Reset()
-	text_op.GeoM.Translate(config.ScreenWidth/2-60, config.ScreenHeight/2-80)
-	text.Draw(screen, fmt.Sprintf("Score: %d", g.Player.Score), mplusNormalFace, text_op)
+	g.TextOptions.GeoM.Reset()
+	g.TextOptions.GeoM.Translate(config.ScreenWidth/2-60, config.ScreenHeight/2-80)
+	text.Draw(screen, fmt.Sprintf("Score: %d", g.Player.Score), mplusNormalFace, g.TextOptions)
 
 	// Menu options with selection indicator
 	againText := "Play Again"
@@ -156,13 +160,13 @@ func (g *Game) drawGameOverMenu(screen *ebiten.Image) {
 		exitText = "> " + exitText + " <"
 	}
 
-	text_op.GeoM.Reset()
-	text_op.GeoM.Translate(config.ScreenWidth/2-60, config.ScreenHeight/2-20)
-	text.Draw(screen, againText, mplusNormalFace, text_op)
+	g.TextOptions.GeoM.Reset()
+	g.TextOptions.GeoM.Translate(config.ScreenWidth/2-60, config.ScreenHeight/2-20)
+	text.Draw(screen, againText, mplusNormalFace, g.TextOptions)
 
-	text_op.GeoM.Reset()
-	text_op.GeoM.Translate(config.ScreenWidth/2-60, config.ScreenHeight/2+20)
-	text.Draw(screen, exitText, mplusNormalFace, text_op)
+	g.TextOptions.GeoM.Reset()
+	g.TextOptions.GeoM.Translate(config.ScreenWidth/2-60, config.ScreenHeight/2+20)
+	text.Draw(screen, exitText, mplusNormalFace, g.TextOptions)
 }
 
 // restartGame resets the game to its initial state for a new playthrough.
@@ -196,6 +200,10 @@ func (g *Game) restartGame() {
 
 	// Reset spatial grid
 	g.SpatialGrid = physics.NewSpatialGrid(config.SpatialGridCellSize)
+
+	// Update trajectory handler references
+	g.TrajectoryHandler.SpawnedEnemies = g.SpawnedEnemies
+	g.TrajectoryHandler.Player = g.Player
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {

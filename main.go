@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
 func NewGame() *game.Game {
@@ -32,7 +33,7 @@ func NewGame() *game.Game {
 	player.Grazebox.CenterOn(player.X+player.Width/2, player.Y+player.Height/2)
 	randomSource := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	return &game.Game{
+	gameInstance := &game.Game{
 		Player:            player,
 		Projectiles:       []*entities.Projectile{},
 		Enemies:           []*entities.Enemy{},
@@ -44,6 +45,17 @@ func NewGame() *game.Game {
 		SpatialGrid:       physics.NewSpatialGrid(config.SpatialGridCellSize),
 		GameOverSelection: 0,
 	}
+
+	// Initialize trajectory handler
+	gameInstance.TrajectoryHandler = &entities.TrajectoryHandler{
+		SpawnedEnemies: gameInstance.SpawnedEnemies,
+		Player:         gameInstance.Player,
+	}
+
+	// Initialize text options
+	gameInstance.TextOptions = &text.DrawOptions{}
+
+	return gameInstance
 }
 
 func main() {
