@@ -123,6 +123,11 @@ func (g *Game) DrawGameplay(screen *ebiten.Image) {
 		// Draw enemy frame using helper function
 		enemyFrame := getSpriteFrame(enemySprite, enemy.IsAttacking)
 		screen.DrawImage(enemyFrame, options)
+
+		// Draw health bar for enemies with more than 1 HP
+		if enemy.MaxHitPoints > 1 {
+			g.drawEnemyHealthBar(screen, enemy)
+		}
 	}
 
 	for _, projectile := range g.Projectiles {
@@ -152,5 +157,23 @@ func (g *Game) DrawHitboxes(screen *ebiten.Image) {
 	for _, projectile := range g.Projectiles {
 		vector.StrokeRect(screen, projectile.Hitbox.X, projectile.Hitbox.Y,
 			projectile.Hitbox.Width, projectile.Hitbox.Height, 2, color.RGBA{255, 255, 255, 255}, true)
+	}
+}
+
+// drawEnemyHealthBar draws a health bar above an enemy showing current HP
+func (g *Game) drawEnemyHealthBar(screen *ebiten.Image, enemy *entities.Enemy) {
+	barWidth := float32(enemy.Width)
+	barHeight := float32(4)
+	barX := enemy.X
+	barY := enemy.Y - barHeight - 2
+
+	// Background (red)
+	vector.DrawFilledRect(screen, barX, barY, barWidth, barHeight, color.RGBA{80, 0, 0, 200}, false)
+
+	// Health bar (green)
+	healthRatio := float32(enemy.HitPoints) / float32(enemy.MaxHitPoints)
+	healthWidth := barWidth * healthRatio
+	if healthWidth > 0 {
+		vector.DrawFilledRect(screen, barX, barY, healthWidth, barHeight, color.RGBA{0, 150, 0, 255}, false)
 	}
 }

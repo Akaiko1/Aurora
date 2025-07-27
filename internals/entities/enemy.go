@@ -42,6 +42,7 @@ func GetEnemyTypeName(enemyType EnemyType) string {
 	}
 }
 
+
 type Enemy struct {
 	X, Y, Width, Height float32
 	SpeedX, SpeedY      float32
@@ -50,6 +51,9 @@ type Enemy struct {
 	AttackStartFrame    int
 	Weapon              *Weapon // Enemy weapon
 	Type                EnemyType
+	HitPoints           int // Current hit points
+	MaxHitPoints        int // Maximum hit points for this enemy type
+	ScoreValue          int // Points awarded when defeated
 }
 
 // UpdatePosition updates the enemy's position and automatically syncs hitbox
@@ -101,20 +105,35 @@ func (enemy *Enemy) EnemyShoot(projectiles *[]*Projectile, currentFrame int) {
 	}
 }
 
-// NewEnemy creates a new enemy of the specified type with the given weapon
-func NewEnemy(x, y float32, enemyType EnemyType, weaponID WeaponID) *Enemy {
+// NewEnemy creates a new enemy of the specified type with the given weapon, HP, and score
+func NewEnemy(x, y float32, enemyType EnemyType, weaponID WeaponID, hitPoints int, scoreValue int) *Enemy {
 	enemy := &Enemy{
-		X:      x,
-		Y:      y,
-		Width:  config.EntitySize, // Use constant instead of hard-coded 32
-		Height: config.EntitySize, // Use constant instead of hard-coded 32
-		SpeedX: config.EnemyBaseSpeedX,
-		SpeedY: config.EnemyBaseSpeedY,
-		Type:   enemyType,
+		X:            x,
+		Y:            y,
+		Width:        config.EntitySize, // Use constant instead of hard-coded 32
+		Height:       config.EntitySize, // Use constant instead of hard-coded 32
+		SpeedX:       config.EnemyBaseSpeedX,
+		SpeedY:       config.EnemyBaseSpeedY,
+		Type:         enemyType,
+		HitPoints:    hitPoints,
+		MaxHitPoints: hitPoints,
+		ScoreValue:   scoreValue,
 	}
 
 	// Initialize weapon with the provided weapon ID
 	enemy.InitializeWeapon(weaponID)
 
 	return enemy
+}
+
+// TakeDamage reduces the enemy's hit points by the specified amount
+// Returns true if the enemy is defeated (HP <= 0)
+func (e *Enemy) TakeDamage(damage int) bool {
+	e.HitPoints -= damage
+	return e.HitPoints <= 0
+}
+
+// IsDefeated returns true if the enemy has no hit points remaining
+func (e *Enemy) IsDefeated() bool {
+	return e.HitPoints <= 0
 }

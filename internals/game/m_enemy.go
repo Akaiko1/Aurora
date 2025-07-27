@@ -7,10 +7,13 @@ import (
 	"scroller_game/internals/physics"
 )
 
-// handleEnemyHit processes when an enemy is defeated by the player.
-// It awards the player a point for the defeated enemy.
+// handleEnemyHit processes when an enemy takes damage from the player.
+// It applies damage to the enemy and awards enemy-specific points if the enemy is defeated.
 func (g *Game) handleEnemyHit(enemy *entities.Enemy) {
-	g.Player.Score++
+	defeated := enemy.TakeDamage(1) // Each hit does 1 damage
+	if defeated {
+		g.Player.Score += enemy.ScoreValue
+	}
 }
 
 // removeDefeatedEnemies removes multiple enemies from the spawned enemies list.

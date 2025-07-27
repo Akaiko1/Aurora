@@ -27,7 +27,7 @@ func (g *Game) UpdateCollisions() {
 	}
 
 	// Check each enemy against nearby projectiles only
-	enemiesToRemove := make([]*entities.Enemy, 0)
+	hitEnemies := make([]*entities.Enemy, 0)
 	projectileIndicesToRemove := make([]int, 0)
 
 	for _, enemy := range g.SpawnedEnemies {
@@ -41,7 +41,7 @@ func (g *Game) UpdateCollisions() {
 		for _, obj := range nearbyObjects {
 			wrapper := obj.(*ProjectileWrapper)
 			if enemy.Hitbox.Intersects(&wrapper.Projectile.Hitbox) {
-				enemiesToRemove = append(enemiesToRemove, enemy)
+				hitEnemies = append(hitEnemies, enemy)
 
 				// Only remove projectile if it's not piercing type
 				if wrapper.Projectile.Type == entities.ProjectileNormal {
@@ -52,11 +52,15 @@ func (g *Game) UpdateCollisions() {
 		}
 	}
 
-	// Process hit enemies and remove them
-	for _, enemy := range enemiesToRemove {
-		g.handleEnemyHit(enemy)
+	// Process hit enemies and collect only defeated ones for removal
+	defeatedEnemies := make([]*entities.Enemy, 0)
+	for _, enemy := range hitEnemies {
+		g.handleEnemyHit(enemy) // This applies damage
+		if enemy.IsDefeated() {
+			defeatedEnemies = append(defeatedEnemies, enemy)
+		}
 	}
-	g.removeDefeatedEnemies(enemiesToRemove)
+	g.removeDefeatedEnemies(defeatedEnemies)
 
 	// Remove projectiles that hit enemies (only normal projectiles, in reverse order to maintain indices)
 	for i := len(projectileIndicesToRemove) - 1; i >= 0; i-- {
